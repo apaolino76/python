@@ -15,3 +15,17 @@ SessionLocal: AsyncSession = async_sessionmaker(
     class_=AsyncSession
 )
 
+engineJEDi: AsyncEngine = create_async_engine(
+    settings.DB_URL_JEDi,
+    echo=False,
+    future=True
+)
+
+SessionJEDi: AsyncSession = async_sessionmaker(
+    bind=engineJEDi,
+    expire_on_commit=False,
+    autoflush=False,
+    autocommit=False,
+    class_=AsyncSession
+)
+
