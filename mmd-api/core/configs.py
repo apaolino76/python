@@ -9,7 +9,9 @@ class Settings(BaseSettings):
 
     API_V1_STR: str = '/api/v1'
     DB_URL: str = "mysql+aiomysql://root:@localhost:3306/fastapi"
+    DB_URL_JEDi: str = "mysql+aiomysql://root:@localhost:3306/jogosdigitais"
     DBBaseModel: ClassVar = declarative_base()
+    DBBaseModelJEDi: ClassVar = declarative_base()
 
     JWT_SECRET: str = 'pZ51QzZaNystmR1-DG37rFzrpsGkU75gAHrdkDmXAZ8'
     ALGORITHM: str = 'HS256'

@@ -5,7 +5,6 @@ from pydantic import BaseModel, ConfigDict, EmailStr
 
 from schemas.artigo_schema import ArtigoSchema
 
-
 class UsuarioSchemaBase(BaseModel):
     id: Optional[int] = None
     nome: str
