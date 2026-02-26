@@ -1,5 +1,6 @@
+from typing import List, Dict, Tuple, Any
 import pandas as pd
-from typing import List
+import matplotlib.pyplot as plt
 from models.vwapriori_model import VwAprioriModel
 
 colunas_desejadas = [
@@ -67,3 +68,38 @@ async def discretizar_coluna(
     )
     
     return df
+
+async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+    # --- Top 10 Lift ---
+    rules_plot = regras.sort_values(by='lift', ascending=False).head(10)
+    plt.figure(figsize=(12, 6))
+    plt.barh(range(len(rules_plot)), rules_plot['lift'], color='skyblue')
+    plt.yticks(range(len(rules_plot)), [f"{list(a)} => {list(c)}" for a, c in zip(rules_plot['antecedents'], rules_plot['consequents'])])
+    plt.xlabel('Lift')
+    plt.title('Top 10 Regras por Lift')
+    plt.gca().invert_yaxis()
+    plt.subplots_adjust(left=0.3)
+    path_lift = "static/regras/img/top10_lift.png"
+    plt.savefig(path_lift)
+    plt.close() # Importante: Libera memória
+
+    # --- Dispersão ---
+    plt.figure(figsize=(8, 6))
+    plt.scatter(regras['support'], regras['confidence'], alpha=0.7, c=regras['lift'], cmap='viridis')
+    plt.xlabel('Support')
+    plt.ylabel('Confidence')
+    plt.colorbar(label='Lift')
+    plt.tight_layout()
+    path_scatter = "static/regras/img/dispersao.png"
+    plt.savefig(path_scatter)
+    plt.close()
+
+    # Preparar JSON
+    rules_list = regras[['antecedents', 'consequents', 'support', 'confidence', 'lift']].copy()
+    rules_list['antecedents'] = rules_list['antecedents'].apply(list)
+    rules_list['consequents'] = rules_list['consequents'].apply(list)
+    
+    return rules_list.to_dict(orient='records'),{
+        "grafico_lift": "/static/regras/img/top10_lift.png",
+        "grafico_dispersao": "/static/regras/img/dispersao.png"
+    }

@@ -6,7 +6,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
 from sqlalchemy.exc import IntegrityError 
 from models.usuario_model import UsuarioModel
-from schemas.usuario_schema import UsuarioSchemaArtigos, UsuarioSchemaBase, UsuarioSchemaCreate, UsuarioSchemaUp
+from schemas.usuario_schema import UsuarioSchemaBase, UsuarioSchemaCreate, UsuarioSchemaUp
 from core.deps import get_session, get_current_user
 from core.security import gerar_hash_senha
 from core.auth import autenticar, criar_token_acesso
@@ -47,12 +47,12 @@ async def get_usuarios(db: AsyncSession = Depends(get_session)):
         return usuarios
 
 #GET usuário
-@router.get('/{usuario_id}', response_model=UsuarioSchemaArtigos, status_code=status.HTTP_200_OK)
+@router.get('/{usuario_id}', response_model=UsuarioSchemaBase, status_code=status.HTTP_200_OK)
 async def get_usuario(usuario_id: int, db: AsyncSession = Depends(get_session)):
     async with db as session:
         query = select(UsuarioModel).filter(UsuarioModel.id == usuario_id)
         result = await session.execute(query)
-        usuario: UsuarioSchemaArtigos = result.scalars().unique().one_or_none()
+        usuario: UsuarioSchemaBase = result.scalars().unique().one_or_none()
         
         if usuario:
             return usuario

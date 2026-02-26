@@ -3,7 +3,7 @@ from typing import List
 
 from pydantic import BaseModel, ConfigDict, EmailStr
 
-from schemas.artigo_schema import ArtigoSchema
+# from schemas.artigo_schema import ArtigoSchema
 
 class UsuarioSchemaBase(BaseModel):
     id: Optional[int] = None
@@ -20,8 +20,8 @@ class UsuarioSchemaBase(BaseModel):
 class UsuarioSchemaCreate(UsuarioSchemaBase):
     senha: str
 
-class UsuarioSchemaArtigos(UsuarioSchemaBase):
-    artigos: Optional[List[ArtigoSchema]]
+# class UsuarioSchemaArtigos(UsuarioSchemaBase):
+#     artigos: Optional[List[ArtigoSchema]]
 
 class UsuarioSchemaUp(UsuarioSchemaBase):
     nome: Optional[str]

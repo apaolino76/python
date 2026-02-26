@@ -1,5 +1,5 @@
 from sqlalchemy import Column, Integer, String, Boolean
-from sqlalchemy.orm import relationship
+# from sqlalchemy.orm import relationship
 from core.configs import settings
 
 class UsuarioModel(settings.DBBaseModel):
@@ -17,4 +17,4 @@ class UsuarioModel(settings.DBBaseModel):
     senha = Column(String(256), nullable=False)
     eh_admin = Column(Boolean, default=False)
 
-    artigos = relationship("ArtigoModel", cascade='all,delete-orphan', back_populates='criador', uselist=True, lazy='joined')
+    # artigos = relationship("ArtigoModel", cascade='all,delete-orphan', back_populates='criador', uselist=True, lazy='joined')

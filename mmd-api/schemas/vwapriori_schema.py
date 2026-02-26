@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, List, Dict
 from pydantic import BaseModel
 from datetime import date
 from decimal import Decimal
@@ -23,3 +23,16 @@ class VwAprioriSchema(BaseModel):
     percentual_acertos: Decimal
     percentual_erros: Decimal
     capacidade_critica: str
+
+class RegrasAssociacaoSchema(BaseModel):
+    antecedents: List[str]
+    consequents: List[str]
+    support: float
+    confidence: float
+    lift: float
+
+# Representa o objeto de retorno final da rota
+class RespostaApriorSchema(BaseModel):
+    total_regras: int
+    links_imagens: Dict[str, str]
+    regras: List[RegrasAssociacaoSchema]
