@@ -2,6 +2,8 @@ from typing import List, Dict, Tuple, Any
 import pandas as pd
 import matplotlib.pyplot as plt
 from models.vwapriori_model import VwAprioriModel
+from models.vwestatistica_avaliacao_model import VwEstatisticaAvaliacoesModel
+import seaborn as sns
 
 colunas_desejadas = [
     'escola',
@@ -43,12 +45,24 @@ async def transforma_schema_data_frame(apriori: List[VwAprioriModel]) -> pd.Data
     
     return pd.DataFrame.from_records(data)
 
-async def discretizar_coluna(
-    df: pd.DataFrame, 
-    campo: str, 
-    bins: List[int], 
-    rotulos: List[str]
-) -> pd.DataFrame:
+async def transforma_dados_avaliacao(avaliacao: List[VwEstatisticaAvaliacoesModel]) -> pd.DataFrame:
+    """
+    Converte uma lista de objetos VwAprioriModel em um DataFrame do Pandas.
+    """
+    # A lógica de extração permanece eficiente para construção do DataFrame
+    data = [
+        {
+            "id": item.id,
+            "avaliacao": item.avaliacao,
+            "autoavaliacao": item.autoavaliacao,
+            "avaliacao_jogo": item.avaliacao_jogo
+        } for item in avaliacao
+    ]
+    
+    return pd.DataFrame.from_records(data)
+
+
+async def discretizar_coluna(df: pd.DataFrame, campo: str, bins: List[int], rotulos: List[str]) -> pd.DataFrame:
     """
     Discretiza uma coluna numérica em categorias (bins).
     
@@ -103,3 +117,44 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
         "grafico_lift": "/static/regras/img/top10_lift.png",
         "grafico_dispersao": "/static/regras/img/dispersao.png"
     }
+
+async def gerar_grafico_avaliacoes(dados: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+        
+        # Transformar o DataFrame para formato longo (long-form) para usar no seaborn
+        df_long = pd.melt(
+            dados,
+            id_vars='avaliacao',
+            value_vars=['autoavaliacao', 'avaliacao_jogo'],
+            var_name='Fonte',
+            value_name='Percentual de Acertos'
+        )
+
+        # Criar o gráfico de barras com seaborn
+        plt.figure(figsize=(10, 6))
+        sns.set(style="whitegrid")
+
+        grafico = sns.barplot(
+            data=df_long,
+            x='avaliacao',
+            y='Percentual de Acertos',
+            hue='Fonte',
+            palette=['royalblue', 'darkorange']
+        )
+
+        # Ajustes estéticos
+        plt.title('Percentual de Acertos por Avaliação (Autoavaliação vs Avaliação do Jogo)')
+        plt.xlabel('Avaliação')
+        plt.ylabel('Percentual de Acertos (%)')
+        plt.ylim(0, 100)
+        plt.xticks(rotation=45)
+        plt.legend(title='Fonte')
+        plt.tight_layout()
+        path_avaliacao = "static/estatisticas/img/acertos_avaliacao.png"
+        plt.savefig(path_avaliacao)
+        # Importante: Libera memória
+        plt.close()
+
+        return df_long.to_dict(orient='records'),{
+            "grafico_avaliacao": path_avaliacao,
+        }
+ 
