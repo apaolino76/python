@@ -24,6 +24,40 @@ async def get_avaliacoes(usuario_logado: UsuarioModel = Depends(get_current_user
             data: List[VwEstisticaAvaliacaoSchema] = result.scalars().unique().all()
             
         df = await transforma_schema_data_frame(data)
+        
+        # Transformar o DataFrame para formato longo (long-form) para usar no seaborn
+        df_long = pd.melt(
+            df,
+            id_vars='avaliacao',
+            value_vars=['autoavaliacao', 'avaliacao_jogo'],
+            var_name='Fonte',
+            value_name='Percentual de Acertos'
+        )
+
+        # Criar o gráfico de barras com seaborn
+        plt.figure(figsize=(10, 6))
+        sns.set(style="whitegrid")
+
+        grafico = sns.barplot(
+            data=df_long,
+            x='avaliacao',
+            y='Percentual de Acertos',
+            hue='Fonte',
+            palette=['royalblue', 'darkorange']
+        )
+
+        # Ajustes estéticos
+        plt.title('Percentual de Acertos por Avaliação (Autoavaliação vs Avaliação do Jogo)')
+        plt.xlabel('Avaliação')
+        plt.ylabel('Percentual de Acertos (%)')
+        plt.ylim(0, 100)
+        plt.xticks(rotation=45)
+        plt.legend(title='Fonte')
+        plt.tight_layout()
+
+        # Exibir o gráfico
+        plt.show()
+
             
         return {
             "total_regras": len(regras),
