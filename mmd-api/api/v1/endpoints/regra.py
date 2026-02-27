@@ -13,11 +13,11 @@ from models.usuario_model import UsuarioModel
 from models.vwapriori_model import VwAprioriModel
 from schemas.vwapriori_schema import VwAprioriSchema, RespostaApriorSchema
 from core.deps import get_session_JEDi, get_current_user
-from api.v1.endpoints.regras.utils import transforma_schema_data_frame, colunas_desejadas, discretizar_coluna, gerar_graficos_e_regras
+from api.v1.endpoints.utils.utils import transforma_schema_data_frame, colunas_desejadas, discretizar_coluna, gerar_graficos_e_regras
 
 router = APIRouter()
 
-# GET Logado
+# GET Regras
 @router.get('/', status_code=status.HTTP_200_OK, response_model=RespostaApriorSchema)
 async def get_rules(usuario_logado: UsuarioModel = Depends(get_current_user), db: AsyncSession = Depends(get_session_JEDi)):
     try:

@@ -7,6 +7,7 @@ import uvicorn
 
 # Criar pastas necessárias se não existirem
 os.makedirs("static/regras/img", exist_ok=True)
+os.makedirs("static/estatisticas/img", exist_ok=True)
 
 app = FastAPI(
     title='JEDi Educa - API para Mineração de Dados',
