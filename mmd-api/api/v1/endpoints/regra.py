@@ -1,33 +1,29 @@
 from typing import List
-from fastapi import APIRouter, status, Depends, HTTPException, Response
-from fastapi.security import OAuth2PasswordRequestForm
-from fastapi.responses import JSONResponse
+from fastapi import APIRouter, status, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from sqlalchemy.exc import IntegrityError
 import pandas as pd
 import numpy as np 
 from mlxtend.frequent_patterns import apriori, association_rules
 
 from models.usuario_model import UsuarioModel
 from models.vwapriori_model import VwAprioriModel
-from schemas.vwapriori_schema import VwAprioriSchema, RespostaApriorSchema
+from schemas.vwapriori_schema import RespostaApriorSchema
 from core.deps import get_session_JEDi, get_current_user
-from api.v1.endpoints.utils.utils import transforma_schema_data_frame, colunas_desejadas, discretizar_coluna, gerar_graficos_e_regras
+from api.v1.endpoints.utils.utils import transforma_em_dataframe, colunas_desejadas, discretizar_coluna, gerar_graficos_e_regras
 
 router = APIRouter()
 
 # GET Regras
 @router.get('/', status_code=status.HTTP_200_OK, response_model=RespostaApriorSchema)
-async def get_rules(usuario_logado: UsuarioModel = Depends(get_current_user), db: AsyncSession = Depends(get_session_JEDi)):
+async def get_rules(request: Request, usuario_logado: UsuarioModel = Depends(get_current_user), db: AsyncSession = Depends(get_session_JEDi)):
     try:
         async with db as session:
             query = select(VwAprioriModel)
             result = await session.execute(query)
-            data: List[VwAprioriSchema] = result.scalars().unique().all()
+            data = result.scalars().unique().all()
             
-        df = await transforma_schema_data_frame(data)
-        #print(df.head())
+        df = await transforma_em_dataframe(data)
             
         # Discretização e Seleção de Colunas
         df_discre = await discretizar_coluna(df, 'idade', [0, 18, 35, 60, 100], ['adolescente', 'jovem', 'adulto', 'idoso'])
@@ -44,9 +40,15 @@ async def get_rules(usuario_logado: UsuarioModel = Depends(get_current_user), db
         
         regras, links_imagens = await gerar_graficos_e_regras(rules)
 
+        base_url = str(request.base_url)
+
+        links = {
+            key: f"{base_url}{value}" for key, value in links_imagens.items()
+        }
+
         return {
             "total_regras": len(regras),
-            "links_imagens": links_imagens,
+            "links_imagens": links,
             "regras": regras
         }
     except Exception as e:
