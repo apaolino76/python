@@ -9,8 +9,16 @@ class EstisticaAvaliacaoSchema(BaseModel):
     fonte: str
     percentual_acertos: Decimal
 
-class RespostaEstatisticaAvaliacaoSchema(BaseModel):
+class RespostaEstatisticaSchema(BaseModel):
     total: int
     link_imagem: Dict[str, str]
     dados: List[Dict[str, Any]]
+
+class EstatisticaCategoriaTurmaSchema(BaseModel):
+
+    id: Optional[int] = None
+    categoria: str
+    turma: str
+    media_acertos: Decimal
+    media_erros: Decimal
 

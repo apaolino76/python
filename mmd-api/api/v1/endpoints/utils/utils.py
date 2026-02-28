@@ -91,7 +91,7 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
         plt.tight_layout()
         path_scatter = "static/regras/img/dispersao.png"
         plt.savefig(path_scatter)
-        plt.close()
+        plt.close('all')
 
         # Preparar JSON
         rules_list = regras[['antecedents', 'consequents', 'support', 'confidence', 'lift']].copy()
@@ -136,6 +136,68 @@ async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
         plt.legend(title='Fonte')
         plt.tight_layout()
         path_avaliacao = "static/estatisticas/img/acertos_avaliacao.png"
+        plt.savefig(path_avaliacao)
+        # Importante: Libera memória
+        plt.close('all')
+
+    except Exception as e:
+        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+
+async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
+    try:
+        # Transformar para formato longo
+        df_meltado = dados.melt(
+            id_vars=['categoria', 'turma'],
+            value_vars=['media_acertos', 'media_erros'],
+            var_name='Tipo',
+            value_name='Média'
+        )
+        
+        # 2. Normalização dos nomes para bater com a 'ordem'
+        # Transformamos 'media_acertos' em 'acerto' e 'media_erros' em 'erro'        
+        df_meltado['Tipo'] = df_meltado['Tipo'].replace({
+            'media_acertos': 'acerto', 
+            'media_erros': 'erro'
+        })
+
+        # Criar coluna combinando tipo e turma para o eixo X
+        df_meltado['Tipo_Turma'] = df_meltado['Tipo'] + ' - ' + df_meltado['turma']
+
+        # Definir ordem personalizada
+        ordem = ['acerto - Turma A', 'erro - Turma A', 'acerto - Turma B', 'erro - Turma B', 'acerto - Turma C', 'erro - Turma C']   
+
+        # Criar o gráfico de barras com seaborn
+        plt.figure(figsize=(10, 6))
+
+        grafico = sns.barplot(
+            data=df_meltado,
+            x='Tipo_Turma',
+            y='Média',
+            hue='categoria',
+            order=ordem,
+            palette='Set2')
+        
+        # Adiciona os valores nas barras
+        for barra in grafico.patches:
+            altura = barra.get_height()
+            if altura > 0:
+                grafico.annotate(
+                    f'{altura:.0f}%',
+                    (barra.get_x() + barra.get_width() / 2, altura),
+                    ha='center',
+                    va='bottom',
+                    fontsize=9
+                )
+            
+        # Ajustes finais
+        plt.title('Percentual de Acerto/Erro por Turma e Categoria', fontsize=14)
+        plt.xlabel('Tipo de Resposta por Turma')
+        plt.ylabel('Média')
+        plt.ylim(0, 100)
+        plt.legend(title='Categoria')
+        plt.tight_layout()
+
+        path_avaliacao = "static/estatisticas/img/categoria_turma.png"
         plt.savefig(path_avaliacao)
         # Importante: Libera memória
         plt.close('all')

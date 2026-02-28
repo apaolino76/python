@@ -6,14 +6,15 @@ from sqlalchemy.future import select
 
 from models.usuario_model import UsuarioModel
 from models.vwestatistica_avaliacao_model import VwEstatisticaAvaliacoesModel
-from schemas.estatisticas_schema import RespostaEstatisticaAvaliacaoSchema
+from models.vwestatistica_categoria_turma_model import VwEstatisticaCategoriaTurmaModel
+from schemas.estatisticas_schema import RespostaEstatisticaSchema
 from core.deps import get_session_JEDi, get_current_user
-from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_avaliacoes
+from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_avaliacoes, gerar_grafico_categoria_turma
 
 router = APIRouter()
 
 # GET Estatísticas por Avaliação
-@router.get('/avaliacao', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaAvaliacaoSchema)
+@router.get('/avaliacao', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaSchema)
 # @cache(expire=300) # Cache de 5 minutos
 async def get_avaliacoes(
     request: Request,
@@ -35,8 +36,6 @@ async def get_avaliacoes(
         # 1. Agendamos a geração da imagem para depois da resposta
         background_tasks.add_task(gerar_grafico_avaliacoes, df)
 
-        # dados, links_imagens = await gerar_grafico_avaliacoes(df)
-
         # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
         link = {"grafico_avaliacao": f"{base_url}static/estatisticas/img/acertos_avaliacao.png"}
@@ -47,5 +46,40 @@ async def get_avaliacoes(
             "dados": df.to_dict(orient="records")
         }
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        print(f"Erro ao gerar gráfico: {e}")
+    
+# GET Estatísticas por Categoria e Turma
+@router.get('/categoria_turma', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaSchema)
+# @cache(expire=300) # Cache de 5 minutos
+async def get_avaliacoes(
+    request: Request,
+    background_tasks: BackgroundTasks,
+    usuario_logado: UsuarioModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session_JEDi)
+):
+    try:
+        async with db as session:
+            query = select(VwEstatisticaCategoriaTurmaModel)
+            result = await session.execute(query)
+            data = result.scalars().all()
+        if not data:
+            raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
+        
+        df = await transforma_em_dataframe(data)
+
+        # 1. Agendamos a geração da imagem para depois da resposta
+        background_tasks.add_task(gerar_grafico_categoria_turma, df)
+        
+        # 2. Construímos a URL da imagem
+        base_url = str(request.base_url)
+        link = {"grafico_categoria_turma": f"{base_url}static/estatisticas/img/categoria_turma.png"}
+
+        return {
+            "total": len(df),
+            "link_imagem": link,
+            "dados": df.to_dict(orient="records")
+        }
+
+    except Exception as e:
+        print(f"Erro ao gerar gráfico: {e}")
 
