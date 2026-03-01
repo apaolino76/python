@@ -15,7 +15,45 @@ from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_
 router = APIRouter()
 
 # GET Estatísticas por Avaliação
-@router.get('/avaliacao', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaSchema)
+@router.get(
+    '/avaliacao',
+    description="""
+    Retorna as estatísticas detalhadas por avaliação.
+
+    **Exemplo de chamada via cURL:**
+    ```bash
+    curl -X 'GET' \\
+    'http://localhost:8000/api/v1/estatisticas/avaliacao' \\
+        -H 'accept: application/json' \\
+        -H 'Authorization: Bearer SEU_TOKEN_AQUI'
+    """,
+    status_code=status.HTTP_200_OK,
+    response_model=RespostaEstatisticaSchema,
+    responses={
+        200: {
+            "description": "Dados retornados com sucesso.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "total": 100,
+                        "link_imagem": {"grafico_avaliacao": "http://localhost:8000/static/..."},
+                        "dados": []
+                    }
+                }
+            },
+        },
+        500: {
+            "description": "Erro interno durante a chamada.",
+            "content": {
+                "application/json": {
+                    "example": {
+                        "detail": "Mensagem de Erro"
+                    }
+                }
+            },
+        }
+    }
+)
 # @cache(expire=300) # Cache de 5 minutos
 async def get_avaliacoes(
     request: Request,

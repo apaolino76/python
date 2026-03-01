@@ -33,6 +33,7 @@ app.include_router(api_router, prefix=settings.API_V1_STR)
 # Configurar o FastAPI para servir arquivos da pasta 'static'
 app.mount("/static", StaticFiles(directory="static"), name="static")
 
+
 if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="debug", reload=True)
 
