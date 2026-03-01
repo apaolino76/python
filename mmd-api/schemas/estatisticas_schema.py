@@ -18,6 +18,14 @@ class EstatisticaCategoriaTurmaSchema(BaseModel):
     media_acertos: Decimal
     media_erros: Decimal
 
+class EstatisticaPartidaTurmaSchema(BaseModel):
+
+    id: Optional[int] = None
+    escola: str
+    turma: str
+    PI: Decimal
+    PF: Decimal
+
 class RespostaEstatisticaSchema(BaseModel):
     total: int
     link_imagem: Dict[str, str]

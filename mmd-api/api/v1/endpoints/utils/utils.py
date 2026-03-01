@@ -41,7 +41,7 @@ async def transforma_em_dataframe(lista_modelos: List[Any]) -> pd.DataFrame:
         
         return pd.DataFrame.from_records(data)
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
+        print(f"Erro durante o processo de transformação do DataFrame: {e}")
 
 async def discretizar_coluna(df: pd.DataFrame, campo: str, bins: List[int], rotulos: List[str]) -> pd.DataFrame:
     try:
@@ -65,7 +65,8 @@ async def discretizar_coluna(df: pd.DataFrame, campo: str, bins: List[int], rotu
         
         return df
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
+        print(f"Erro durante o processo de discretização da coluna: {e}")
+
 
 async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     try:
@@ -103,7 +104,8 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
             "grafico_dispersao": "static/regras/img/dispersao.png"
         }
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
+        print(f"Erro durante o processo de Gerar Gráfico de Regras: {e}")
+
 
 # async def gerar_grafico_avaliacoes(dados: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
 async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
@@ -139,9 +141,8 @@ async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
         plt.savefig(path_avaliacao)
         # Importante: Libera memória
         plt.close('all')
-
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
+        print(f"Erro durante o processo de Gerar Gráfico de Avaliações: {e}")
 
 async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
     try:
@@ -201,7 +202,60 @@ async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
         plt.savefig(path_avaliacao)
         # Importante: Libera memória
         plt.close('all')
-
     except Exception as e:
-        raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
- 
+        print(f"Erro durante o processo de Gerar Gráfico de Categorias: {e}") 
+
+async def gerar_grafico_partida_escola(dados: pd.DataFrame):
+    try:
+        # Transformar para formato longo
+        df_meltado = dados.melt(
+            id_vars=['escola', 'turma'],
+            value_vars=['PI', 'PF'],
+            var_name='Tipo',
+            value_name='Média'
+        )
+        
+        # Criar coluna combinando tipo e turma para o eixo X
+        df_meltado['Tipo_Turma'] = df_meltado['Tipo'] + ' - ' + df_meltado['turma']
+
+        # Definir ordem personalizada
+        ordem = ['PI - Turma A', 'PF - Turma A', 'PI - Turma B', 'PF - Turma B', 'PI - Turma C', 'PF - Turma C']
+
+        # Criar o gráfico de barras com seaborn
+        plt.figure(figsize=(10, 6))
+
+        grafico = sns.barplot(
+            data=df_meltado,
+            x='Tipo_Turma',
+            y='Média',
+            hue='escola',
+            order=ordem,
+            palette=['royalblue', 'darkorange']
+        )
+        
+        # Adiciona os valores nas barras
+        for barra in grafico.patches:
+            altura = barra.get_height()
+            if altura > 0:
+                grafico.annotate(
+                    f'{altura:.0f}%',
+                    (barra.get_x() + barra.get_width() / 2, altura),
+                    ha='center',
+                    va='bottom',
+                    fontsize=9
+                )
+            
+        # Ajustes finais
+        plt.title('Percentual de Acertos por Tipo da Partida e Turma', fontsize=14)
+        plt.xlabel('Desempenho por Tipo da Partida e Turma')
+        plt.ylabel('Média')
+        plt.ylim(0, 100)
+        plt.legend(title='escola')
+        plt.tight_layout()
+
+        path_avaliacao = "static/estatisticas/img/escola_turma.png"
+        plt.savefig(path_avaliacao)
+        # Importante: Libera memória
+        plt.close('all')
+    except Exception as e:
+        print(f"Erro durante o processo de Gerar Gráfico de Partidas: {e}") 
