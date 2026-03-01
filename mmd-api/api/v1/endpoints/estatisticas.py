@@ -83,7 +83,7 @@ async def get_categoria_turma(
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
 
-# GET Estatísticas por Escola e Partida
+# GET Estatísticas por Partida, Escola e Turma
 @router.get('/partida_escola', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaSchema)
 # @cache(expire=300) # Cache de 5 minutos
 async def get_partida_escola(
