@@ -8,7 +8,7 @@ from sqlalchemy.future import select
 from core.deps import get_session_JEDi, get_current_user
 from core.configs import settings
 from models.usuario_model import UsuarioModel
-from schemas.metricas_schema import RespostaMetricasSchema
+from schemas.metricas_schema import MetricasSchemaBase, RespostaMetricasSchema
 
 router = APIRouter()
 
@@ -19,9 +19,7 @@ router = APIRouter()
     response_model=RespostaMetricasSchema,
 )
 async def post_tempo_leitura(
-    texto: str,
-    perguntas_tecnicas: bool = False,
-    possui_img: bool = False,
+    metricas: MetricasSchemaBase,
     usuario_logado: UsuarioModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_session_JEDi)
 ):
@@ -32,7 +30,7 @@ async def post_tempo_leitura(
     """
     try:
         # 1. Conta o número de palavras
-        palavras = texto.split()
+        palavras = metricas.texto.split()
         total_palavras = len(palavras)
         
         # 2. Calcula o tempo em minutos
@@ -49,17 +47,18 @@ async def post_tempo_leitura(
         tp_total_adulto = tp_adulto_seg + 1.5
         
         # Se a pergunta for técnica: Adicione um multiplicador de dificuldade (ex: tempo X 1.2)
-        if perguntas_tecnicas:
+        if metricas.perguntas_tecnicas:
             tp_total_infant *= 1.2
             tp_total_adulto *= 1.2
 
         # Se a pergunta tiver uma imagem: some de 3 a 5 segundos fixos
-        if possui_img:
+        if metricas.possui_img:
             tp_total_infant += settings.WPM_IMAGEM
             tp_total_adulto += settings.WPM_IMAGEM
         
         return {
-            "texto": texto,
+            "texto": metricas.texto,
+            "numero_palavras": total_palavras, 
             "publico_infantil":  math.ceil(tp_total_infant),
             "publico_adulto":  math.ceil(tp_total_adulto),
         }

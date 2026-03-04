@@ -38,6 +38,6 @@ if __name__ == '__main__':
     uvicorn.run("main:app", host="0.0.0.0", port=8000, log_level="debug", reload=True)
 
 '''
-Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiZXhwIjoxNzcyNTgzNzk3LCJpYXQiOjE3NzE5Nzg5OTcsInN1YiI6IjMifQ.NEbUaHH0XOnZMAco040MS00IU3ZQXQ878E0recr-7y0
+Token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ0eXBlIjoiYWNjZXNzX3Rva2VuIiwiZXhwIjoxNzczMjY3MzIwLCJpYXQiOjE3NzI2NjI1MjAsInN1YiI6IjQifQ.9fpDz2TxAslCyLn-nR_WNdZ07xPWdiI9GwWJQgpYqP8
 Type = bearer
 '''
