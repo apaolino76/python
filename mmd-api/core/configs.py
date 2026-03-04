@@ -18,6 +18,11 @@ class Settings(BaseSettings):
     # 60 minutos * 24 horas * 7 dias => 1 semana
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 60 * 24 * 7
     
+    # Métrica de leitura de palavras por minuto
+    WPM_INFANTIL: int = 110      # 100-120
+    WPM_ADULTO: int = 200
+    WPM_IMAGEM: int = 4          # Se a pergunta tiver uma imagem, some de 3 a 5 segundos fixos
+    
     class Config:
         case_sensitiva = True
 
