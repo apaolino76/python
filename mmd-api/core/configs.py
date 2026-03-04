@@ -23,7 +23,6 @@ class Settings(BaseSettings):
     WPM_ADULTO: int = 200
     WPM_IMAGEM: int = 4          # Se a pergunta tiver uma imagem, some de 3 a 5 segundos fixos
     
-    class Config:
-        case_sensitiva = True
+    case_sensitiva = True
 
 settings: Settings = Settings()

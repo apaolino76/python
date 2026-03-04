@@ -7,5 +7,5 @@ class RespostaMetricasSchema(BaseModel):
     id: Optional[int] = None
     texto: str
     publico_infantil: Decimal
-    publicio_adulto: Decimal
+    publico_adulto: Decimal
 

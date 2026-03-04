@@ -8,5 +8,5 @@ class MetricasModel(settings.DBBaseModelJEDi):
     id = Column(Integer, primary_key=True)
     texto = Column(String(350))
     publico_infantil: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
-    publicio_adulto: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
+    publico_adulto: Mapped[Decimal] = mapped_column(Numeric(precision=10, scale=2))
 

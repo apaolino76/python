@@ -54,14 +54,14 @@ async def post_tempo_leitura(
             tp_total_adulto *= 1.2
 
         # Se a pergunta tiver uma imagem: some de 3 a 5 segundos fixos
-        if perguntas_tecnicas:
+        if possui_img:
             tp_total_infant += settings.WPM_IMAGEM
             tp_total_adulto += settings.WPM_IMAGEM
         
         return {
-            "pergunta": texto,
+            "texto": texto,
             "publico_infantil":  math.ceil(tp_total_infant),
-            "publicio_adulto":  math.ceil(tp_total_adulto),
+            "publico_adulto":  math.ceil(tp_total_adulto),
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
