@@ -5,16 +5,18 @@ from decimal import Decimal
 class EstisticaAvaliacaoSchema(BaseModel):
         
     id: Optional[int] = None
+    escola: Optional[str]
+    turma: str
     avaliacao: str
-    fonte: str
-    percentual_acertos: Decimal
-
+    autoavaliacao: Decimal
+    avaliacao_jogo: Decimal
 
 class EstatisticaCategoriaTurmaSchema(BaseModel):
 
     id: Optional[int] = None
-    categoria: str
+    escola: Optional[str]
     turma: str
+    categoria: str
     media_acertos: Decimal
     media_erros: Decimal
 

@@ -109,31 +109,51 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
 
 # async def gerar_grafico_avaliacoes(dados: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
 async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
-    try:        
+    try:
+        # 1. Garantir que as colunas sejam numéricas (converte de Decimal/String para Float)
+        colunas_valores = ['autoavaliacao', 'avaliacao_jogo']
+        for col in colunas_valores:
+            if col in dados.columns:
+                dados[col] = pd.to_numeric(dados[col], errors='coerce').fillna(0).astype(float)
+
         # Transformar o DataFrame para formato longo (long-form) para usar no seaborn
         df_long = pd.melt(
             dados,
             id_vars='avaliacao',
-            value_vars=['autoavaliacao', 'avaliacao_jogo'],
+            value_vars=colunas_valores,
             var_name='fonte',
             value_name='percentual_acertos'
         )
 
         # Criar o gráfico de barras com seaborn
         plt.figure(figsize=(10, 6))
-        sns.barplot(
+        grafico = sns.barplot(
             data=df_long,
             x='avaliacao',
             y='percentual_acertos',
             hue='fonte',
-            palette=['royalblue', 'darkorange']
+            palette=['royalblue', 'darkorange'],
+            errorbar=None
         )
+
+        # ADICIONAR OS VALORES NAS BARRAS (O que faltava)
+        for barra in grafico.patches:
+            altura = barra.get_height()
+            if altura > 0:
+                grafico.annotate(
+                    f'{altura:.1f}%', # Formata com uma casa decimal e símbolo %
+                    (barra.get_x() + barra.get_width() / 2, altura),
+                    ha='center', 
+                    va='bottom',
+                    fontsize=9,
+                    fontweight='normal'
+                )
 
         # Ajustes estéticos
         plt.title('Percentual de Acertos por Avaliação (Autoavaliação vs Avaliação do Jogo)')
         plt.xlabel('Avaliação')
         plt.ylabel('Percentual de Acertos (%)')
-        plt.ylim(0, 100)
+        plt.ylim(0, 115)
         plt.xticks(rotation=45)
         plt.legend(title='Fonte')
         plt.tight_layout()
@@ -224,13 +244,21 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
         # Criar o gráfico de barras com seaborn
         plt.figure(figsize=(10, 6))
 
+        # Supondo que sua lista de cores seja algo como:
+        cores = ["#3498db", "#e74c3c"] 
+
+        # Verifique quantos itens únicos existem na coluna que você está plotando
+        # Se estiver plotando por 'escola', por exemplo:
+        n_colors = dados['escola'].nunique()
+
         grafico = sns.barplot(
             data=df_meltado,
             x='Tipo_Turma',
             y='Média',
             hue='escola',
             order=ordem,
-            palette=['royalblue', 'darkorange']
+            palette=cores[:n_colors] # Fatia a lista para o tamanho exato
+            # palette=['royalblue', 'darkorange']
         )
         
         # Adiciona os valores nas barras
