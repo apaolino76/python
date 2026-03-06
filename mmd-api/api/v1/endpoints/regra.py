@@ -1,9 +1,11 @@
+
+import pandas as pd
+import numpy as np
+import time 
 from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-import pandas as pd
-import numpy as np 
 from mlxtend.frequent_patterns import apriori, association_rules
 
 from models.usuario_model import UsuarioModel
@@ -12,10 +14,10 @@ from schemas.vwapriori_schema import RespostaApriorSchema
 from core.deps import get_session_JEDi, get_current_user
 from api.v1.endpoints.utils.utils import transforma_em_dataframe, colunas_desejadas, discretizar_coluna, gerar_graficos_e_regras
 
-router = APIRouter()
+router = APIRouter(redirect_slashes=False)
 
 # GET Regras
-@router.get('/', status_code=status.HTTP_200_OK, response_model=RespostaApriorSchema)
+@router.get('', status_code=status.HTTP_200_OK, response_model=RespostaApriorSchema)
 async def get_rules(request: Request, usuario_logado: UsuarioModel = Depends(get_current_user), db: AsyncSession = Depends(get_session_JEDi)):
     try:
         async with db as session:
@@ -41,9 +43,10 @@ async def get_rules(request: Request, usuario_logado: UsuarioModel = Depends(get
         regras, links_imagens = await gerar_graficos_e_regras(rules)
 
         base_url = str(request.base_url)
+        timestamp = int(time.time())
 
         links = {
-            key: f"{base_url}{value}" for key, value in links_imagens.items()
+            key: f"{base_url}{value}?v={timestamp}" for key, value in links_imagens.items()
         }
 
         return {
