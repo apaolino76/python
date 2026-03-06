@@ -17,7 +17,7 @@ SessionLocal: AsyncSession = async_sessionmaker(
 
 engineJEDi: AsyncEngine = create_async_engine(
     settings.DB_URL_JEDi,
-    echo=False,
+    echo=False, # lança o SQL gerado no console do servidor
     future=True
 )
 

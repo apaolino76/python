@@ -174,7 +174,7 @@ async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
             value_name='Média'
         )
         
-        # 2. Normalização dos nomes para bater com a 'ordem'
+        # Normalização dos nomes para bater com a 'ordem'
         # Transformamos 'media_acertos' em 'acerto' e 'media_erros' em 'erro'        
         df_meltado['Tipo'] = df_meltado['Tipo'].replace({
             'media_acertos': 'acerto', 
@@ -184,8 +184,15 @@ async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
         # Criar coluna combinando tipo e turma para o eixo X
         df_meltado['Tipo_Turma'] = df_meltado['Tipo'] + ' - ' + df_meltado['turma']
 
-        # Definir ordem personalizada
-        ordem = ['acerto - Turma A', 'erro - Turma A', 'acerto - Turma B', 'erro - Turma B', 'acerto - Turma C', 'erro - Turma C']   
+        # Identifica quais turmas realmente existem nos dados recebidos após o filtro
+        turmas_na_base = dados['turma'].unique() 
+
+        # Cria a ordem dinamicamente baseada no que foi encontrado
+        # Isso garante que a ordem 'Acerto' seguido de 'Erro' se mantenha para cada turma
+        ordem_dinamica = []
+        for t in sorted(turmas_na_base): # sorted garante ordem alfabética (Turma A, B...)
+            ordem_dinamica.append(f'acerto - {t}')
+            ordem_dinamica.append(f'erro - {t}')
 
         # Criar o gráfico de barras com seaborn
         plt.figure(figsize=(10, 6))
@@ -195,7 +202,7 @@ async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
             x='Tipo_Turma',
             y='Média',
             hue='categoria',
-            order=ordem,
+            order=ordem_dinamica,
             palette='Set2')
         
         # Adiciona os valores nas barras
@@ -239,7 +246,16 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
         df_meltado['Tipo_Turma'] = df_meltado['Tipo'] + ' - ' + df_meltado['turma']
 
         # Definir ordem personalizada
-        ordem = ['PI - Turma A', 'PF - Turma A', 'PI - Turma B', 'PF - Turma B', 'PI - Turma C', 'PF - Turma C']
+        # ordem = ['PI - Turma A', 'PF - Turma A', 'PI - Turma B', 'PF - Turma B', 'PI - Turma C', 'PF - Turma C']
+        # Identifica quais turmas realmente existem nos dados recebidos após o filtro
+        turmas_na_base = dados['turma'].unique() 
+
+        # Cria a ordem dinamicamente baseada no que foi encontrado
+        # Isso garante que a ordem 'Acerto' seguido de 'Erro' se mantenha para cada turma
+        ordem_dinamica = []
+        for t in sorted(turmas_na_base): # sorted garante ordem alfabética (Turma A, B...)
+            ordem_dinamica.append(f'PI - {t}')
+            ordem_dinamica.append(f'PF - {t}') 
 
         # Criar o gráfico de barras com seaborn
         plt.figure(figsize=(10, 6))
@@ -256,7 +272,7 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
             x='Tipo_Turma',
             y='Média',
             hue='escola',
-            order=ordem,
+            order=ordem_dinamica,
             palette=cores[:n_colors] # Fatia a lista para o tamanho exato
             # palette=['royalblue', 'darkorange']
         )
@@ -266,7 +282,7 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
             altura = barra.get_height()
             if altura > 0:
                 grafico.annotate(
-                    f'{altura:.0f}%',
+                    f'{altura:.2f}%',
                     (barra.get_x() + barra.get_width() / 2, altura),
                     ha='center',
                     va='bottom',

@@ -11,6 +11,13 @@ class EstisticaAvaliacaoSchema(BaseModel):
     autoavaliacao: Decimal
     avaliacao_jogo: Decimal
 
+class EstisticaAvaliacaoFilterSchema(BaseModel):
+        
+    id: Optional[int] = None
+    escola: Optional[str] = None
+    turma: Optional[str] = None
+    avaliacao: Optional[str] = None
+
 class EstatisticaCategoriaTurmaSchema(BaseModel):
 
     id: Optional[int] = None
@@ -20,6 +27,13 @@ class EstatisticaCategoriaTurmaSchema(BaseModel):
     media_acertos: Decimal
     media_erros: Decimal
 
+class EstisticaCategoriaFilterSchema(BaseModel):
+        
+    id: Optional[int] = None
+    escola: Optional[str] = None
+    turma: Optional[str] = None
+    categoria: Optional[str] = None
+
 class EstatisticaPartidaTurmaSchema(BaseModel):
 
     id: Optional[int] = None
@@ -28,6 +42,12 @@ class EstatisticaPartidaTurmaSchema(BaseModel):
     PI: Decimal
     PF: Decimal
 
+class EstatisticaPartidaFilterSchema(BaseModel):
+
+    id: Optional[int] = None
+    escola: Optional[str] = None
+    turma: Optional[str] = None
+ 
 class RespostaEstatisticaSchema(BaseModel):
     total: int
     link_imagem: Dict[str, str]

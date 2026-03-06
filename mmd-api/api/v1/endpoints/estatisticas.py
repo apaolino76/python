@@ -1,5 +1,6 @@
+import time
 from typing import List
-from fastapi import APIRouter, status, Depends, HTTPException, Request, BackgroundTasks
+from fastapi import APIRouter, status, Depends, HTTPException, Request
 # from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -8,7 +9,7 @@ from models.usuario_model import UsuarioModel
 from models.vwestatistica_avaliacao_model import VwEstatisticaAvaliacoesModel
 from models.vwestatistica_categoria_turma_model import VwEstatisticaCategoriaTurmaModel
 from models.vwestatististica_partida_turma import VwEstatisticaPartidaTurmaModel
-from schemas.estatisticas_schema import RespostaEstatisticaSchema
+from schemas.estatisticas_schema import EstisticaAvaliacaoFilterSchema, EstisticaCategoriaFilterSchema, EstatisticaPartidaFilterSchema, RespostaEstatisticaSchema
 from core.deps import get_session_JEDi, get_current_user
 from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_avaliacoes, gerar_grafico_categoria_turma, gerar_grafico_partida_escola
 
@@ -57,13 +58,21 @@ router = APIRouter()
 # @cache(expire=300) # Cache de 5 minutos
 async def get_avaliacoes(
     request: Request,
-    background_tasks: BackgroundTasks,
+    filters: EstisticaAvaliacaoFilterSchema = Depends(),
     usuario_logado: UsuarioModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
         async with db as session:
             query = select(VwEstatisticaAvaliacoesModel)
+            if filters.id:
+                query = query.where(VwEstatisticaAvaliacoesModel.id == filters.id)
+            if filters.escola:
+                query = query.where(VwEstatisticaAvaliacoesModel.escola == filters.escola)
+            if filters.turma:
+                query = query.where(VwEstatisticaAvaliacoesModel.turma == filters.turma)
+            if filters.avaliacao:
+                query = query.where(VwEstatisticaAvaliacoesModel.avaliacao == filters.avaliacao)            
             result = await session.execute(query)
             data = result.scalars().all()
 
@@ -72,12 +81,15 @@ async def get_avaliacoes(
         
         df = await transforma_em_dataframe(data)
 
-        # 1. Agendamos a geração da imagem para depois da resposta
-        background_tasks.add_task(gerar_grafico_avaliacoes, df)
+        # Agendamos a geração da imagem para depois da resposta
+        await gerar_grafico_avaliacoes(df)
 
-        # 2. Construímos a URL da imagem
+        # Construímos a URL da imagem
         base_url = str(request.base_url)
-        link = {"grafico_avaliacao": f"{base_url}static/estatisticas/img/acertos_avaliacao.png"}
+        timestamp = int(time.time())
+        link = {
+            "grafico_avaliacao": f"{base_url}static/estatisticas/img/acertos_avaliacao.png?v={timestamp}"
+        }
 
         return {
             "total": len(df),
@@ -92,13 +104,22 @@ async def get_avaliacoes(
 # @cache(expire=300) # Cache de 5 minutos
 async def get_categoria_turma(
     request: Request,
-    background_tasks: BackgroundTasks,
+    filters: EstisticaCategoriaFilterSchema = Depends(),
     usuario_logado: UsuarioModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
         async with db as session:
             query = select(VwEstatisticaCategoriaTurmaModel)
+            # --- Aplicação Dinâmica de Filtros ---
+            if filters.id:
+                query = query.where(VwEstatisticaCategoriaTurmaModel.id == filters.id)
+            if filters.escola:
+                query = query.where(VwEstatisticaCategoriaTurmaModel.escola == filters.escola)
+            if filters.turma:
+                query = query.where(VwEstatisticaCategoriaTurmaModel.turma == filters.turma)
+            if filters.categoria:
+                query = query.where(VwEstatisticaCategoriaTurmaModel.categoria == filters.categoria)
             result = await session.execute(query)
             data = result.scalars().all()
         if not data:
@@ -106,12 +127,13 @@ async def get_categoria_turma(
         
         df = await transforma_em_dataframe(data)
 
-        # 1. Agendamos a geração da imagem para depois da resposta
-        background_tasks.add_task(gerar_grafico_categoria_turma, df)
+        await gerar_grafico_categoria_turma(df)
         
-        # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
-        link = {"grafico_categoria_turma": f"{base_url}static/estatisticas/img/categoria_turma.png"}
+        timestamp = int(time.time())
+        link = {
+            "grafico_categoria_turma": f"{base_url}static/estatisticas/img/categoria_turma.png?v={timestamp}"
+        }
 
         return {
             "total": len(df),
@@ -126,13 +148,19 @@ async def get_categoria_turma(
 # @cache(expire=300) # Cache de 5 minutos
 async def get_partida_escola(
     request: Request,
-    background_tasks: BackgroundTasks,
+    filters: EstatisticaPartidaFilterSchema = Depends(),
     usuario_logado: UsuarioModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
         async with db as session:
             query = select(VwEstatisticaPartidaTurmaModel)
+            if filters.id:
+                query = query.where(VwEstatisticaPartidaTurmaModel.id == filters.id)
+            if filters.escola:
+                query = query.where(VwEstatisticaPartidaTurmaModel.escola == filters.escola)
+            if filters.turma:
+                query = query.where(VwEstatisticaPartidaTurmaModel.turma == filters.turma)
             result = await session.execute(query)
             data = result.scalars().all()
         if not data:
@@ -141,11 +169,14 @@ async def get_partida_escola(
         df = await transforma_em_dataframe(data)
 
         # 1. Agendamos a geração da imagem para depois da resposta
-        background_tasks.add_task(gerar_grafico_partida_escola, df)
+        await gerar_grafico_partida_escola(df)
         
         # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
-        link = {"grafico_escola_turma": f"{base_url}static/estatisticas/img/escola_turma.png"}
+        timestamp = int(time.time())
+        link = {
+            "grafico_escola_turma": f"{base_url}static/estatisticas/img/escola_turma.png?v={timestamp}"
+        }
 
         return {
             "total": len(df),
