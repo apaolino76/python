@@ -303,3 +303,24 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
         plt.close('all')
     except Exception as e:
         print(f"Erro durante o processo de Gerar Gráfico de Partidas: {e}") 
+
+async def gerar_grafico_perfil_noticia(dados: pd.DataFrame):
+    try:
+        
+        ax = plt.subplots(figsize=(10, 6))
+        dados.plot(
+            kind='bar',
+            x='Categoria',
+            ax=ax,
+            color=['#e74c3c', '#2ecc71']
+        )
+        
+        plt.title('Comparativo: Notícias Fake vs. Não Fake por Categoria')
+        plt.ylabel('Quantidade')
+        plt.xticks(rotation=45)
+        plt.tight_layout()
+        path_avaliacao = "static/estatisticas/img/perfil_noticia.png"
+        plt.savefig(path_avaliacao)
+        plt.close('all')
+    except Exception as e:
+        print(f"Erro durante o processo de Gerar Gráfico de Partidas: {e}") 
