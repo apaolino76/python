@@ -70,6 +70,10 @@ async def discretizar_coluna(df: pd.DataFrame, campo: str, bins: List[int], rotu
 
 async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     try:
+        # Forçar a limpeza de qualquer gráfico anterior na memória
+        plt.clf()
+        plt.close('all')
+
         # --- Top 10 Lift ---
         rules_plot = regras.sort_values(by='lift', ascending=False).head(10)
         plt.figure(figsize=(12, 6))
@@ -110,6 +114,10 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
 # async def gerar_grafico_avaliacoes(dados: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
 async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
     try:
+        # Forçar a limpeza de qualquer gráfico anterior na memória
+        plt.clf()
+        plt.close('all')
+
         # 1. Garantir que as colunas sejam numéricas (converte de Decimal/String para Float)
         colunas_valores = ['autoavaliacao', 'avaliacao_jogo']
         for col in colunas_valores:
@@ -166,6 +174,10 @@ async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
 
 async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
     try:
+        # Forçar a limpeza de qualquer gráfico anterior na memória
+        plt.clf()
+        plt.close('all')
+
         # Transformar para formato longo
         df_meltado = dados.melt(
             id_vars=['categoria', 'turma'],
@@ -234,6 +246,11 @@ async def gerar_grafico_categoria_turma(dados: pd.DataFrame):
 
 async def gerar_grafico_partida_escola(dados: pd.DataFrame):
     try:
+
+        # Forçar a limpeza de qualquer gráfico anterior na memória
+        plt.clf()
+        plt.close('all')
+        
         # Transformar para formato longo
         df_meltado = dados.melt(
             id_vars=['escola', 'turma'],
@@ -306,21 +323,47 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
 
 async def gerar_grafico_perfil_noticia(dados: pd.DataFrame):
     try:
+        # 1. Limpeza total antes de começar
+        plt.clf()
+        plt.close('all')
+
+        # 2. Conversão explícita para garantir que o filtro numérico funcione no plot
+        dados['fake_qt'] = pd.to_numeric(dados['fake_qt'], errors='coerce').fillna(0)
+        dados['nao_fake_qt'] = pd.to_numeric(dados['nao_fake_qt'], errors='coerce').fillna(0)
         
-        ax = plt.subplots(figsize=(10, 6))
+        # 3. Criar figura e eixo explicitamente
+        fig, ax = plt.subplots(figsize=(10, 6))
+        
+        # 4. Plotar definindo EXPLICITAMENTE as colunas (isso remove o ID automaticamente)
         dados.plot(
             kind='bar',
-            x='Categoria',
+            x='categoria', # Deve ser minúsculo conforme seu Model
+            y=['fake_qt', 'nao_fake_qt'],
             ax=ax,
-            color=['#e74c3c', '#2ecc71']
+            color=['#e74c3c', '#2ecc71'],
+            label=['Fake', 'Não Fake']
         )
+
+        # 5. Configurações de títulos e labels
+        ax.set_title('Comparativo: Notícias Fake vs. Não Fake por Categoria')
+        ax.set_ylabel('Quantidade')
+        ax.set_xlabel('Categoria')
         
-        plt.title('Comparativo: Notícias Fake vs. Não Fake por Categoria')
-        plt.ylabel('Quantidade')
+        # 6. Adicionar os rótulos de dados (valores em cima das barras)
+        for p in ax.patches:
+            ax.annotate(str(int(p.get_height())), 
+                        (p.get_x() + p.get_width() / 2., p.get_height()), 
+                        ha='center', va='center', 
+                        xytext=(0, 9), 
+                        textcoords='offset points')
+
         plt.xticks(rotation=45)
         plt.tight_layout()
-        path_avaliacao = "static/estatisticas/img/perfil_noticia.png"
-        plt.savefig(path_avaliacao)
-        plt.close('all')
+        
+        # 7. Salvar usando o objeto da figura (fig) em vez de plt
+        path_save = "static/estatisticas/img/perfil_noticia.png"
+        fig.savefig(path_save)
+        plt.close('all') 
+        
     except Exception as e:
-        print(f"Erro durante o processo de Gerar Gráfico de Partidas: {e}") 
+        print(f"Erro ao gerar gráfico de perfil: {e}")

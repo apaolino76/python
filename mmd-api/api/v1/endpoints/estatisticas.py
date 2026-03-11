@@ -9,7 +9,9 @@ from models.usuario_model import UsuarioModel
 from models.vwestatistica_avaliacao_model import VwEstatisticaAvaliacoesModel
 from models.vwestatistica_categoria_turma_model import VwEstatisticaCategoriaTurmaModel
 from models.vwestatististica_partida_turma import VwEstatisticaPartidaTurmaModel
-from schemas.estatisticas_schema import EstisticaAvaliacaoFilterSchema, EstisticaCategoriaFilterSchema, EstatisticaPartidaFilterSchema, RespostaEstatisticaSchema
+from models.vwdistribuicao_noticias_categoria import VwDistribuicaoNoticiasCategoriaModel
+
+from schemas.estatisticas_schema import EstisticaAvaliacaoFilterSchema, EstisticaCategoriaFilterSchema, EstatisticaPartidaFilterSchema, RespostaEstatisticaSchema, DistribuicaoNotociaCategoriaFilterSchema
 from core.deps import get_session_JEDi, get_current_user
 from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_avaliacoes, gerar_grafico_categoria_turma, gerar_grafico_partida_escola, gerar_grafico_perfil_noticia
 
@@ -190,19 +192,17 @@ async def get_partida_escola(
 # @cache(expire=300) # Cache de 5 minutos
 async def get_perfil_noticia(
     request: Request,
-    filters: EstatisticaPartidaFilterSchema = Depends(),
+    filters: DistribuicaoNotociaCategoriaFilterSchema = Depends(),
     usuario_logado: UsuarioModel = Depends(get_current_user),
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
         async with db as session:
-            query = select(VwEstatisticaPartidaTurmaModel)
+            query = select(VwDistribuicaoNoticiasCategoriaModel)
             if filters.id:
-                query = query.where(VwEstatisticaPartidaTurmaModel.id == filters.id)
-            if filters.escola:
-                query = query.where(VwEstatisticaPartidaTurmaModel.escola == filters.escola)
-            if filters.turma:
-                query = query.where(VwEstatisticaPartidaTurmaModel.turma == filters.turma)
+                query = query.where(VwDistribuicaoNoticiasCategoriaModel.id == filters.id)
+            if filters.categoria:
+                query = query.where(VwDistribuicaoNoticiasCategoriaModel.categoria == filters.categoria)
             result = await session.execute(query)
             data = result.scalars().all()
         if not data:

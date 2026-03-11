@@ -13,6 +13,7 @@ class RespostaMetricasSchema(BaseModel):
 
     texto: str
     numero_palavras: int
+    numero_caracteres: int
     publico_infantil: Decimal
     publico_adulto: Decimal
 

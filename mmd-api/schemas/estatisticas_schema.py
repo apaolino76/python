@@ -48,6 +48,20 @@ class EstatisticaPartidaFilterSchema(BaseModel):
     escola: Optional[str] = None
     turma: Optional[str] = None
  
+class DistribuicaoNotociaCategoriaSchema(BaseModel):
+
+    id: Optional[int] = None
+    categoria: str
+    fake_qt: int
+    fake_perc: Decimal
+    nao_fake_qt: int
+    nao_fake_perc: Decimal
+
+class DistribuicaoNotociaCategoriaFilterSchema(BaseModel):
+
+    id: Optional[int] = None
+    categoria: Optional[str] = None
+
 class RespostaEstatisticaSchema(BaseModel):
     total: int
     link_imagem: Dict[str, str]

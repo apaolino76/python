@@ -58,7 +58,8 @@ async def post_tempo_leitura(
         
         return {
             "texto": metricas.texto,
-            "numero_palavras": total_palavras, 
+            "numero_palavras": total_palavras,
+            "numero_caracteres": len(metricas.texto), 
             "publico_infantil":  math.ceil(tp_total_infant),
             "publico_adulto":  math.ceil(tp_total_adulto),
         }
