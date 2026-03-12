@@ -68,6 +68,17 @@ async def discretizar_coluna(df: pd.DataFrame, campo: str, bins: List[int], rotu
         print(f"Erro durante o processo de discretização da coluna: {e}")
 
 
+def limpar_nome(item_set):
+    # Remove prefixos comuns gerados pelo get_dummies ou discretização
+    substituicoes = ['fx_idade', 'categoria_', 'escola_', 'turma_',  'auto_avaliacao_', 'avaliacao_jogo_', 'capacidade_critica_']
+    nova_lista = []
+    for item in item_set:
+        for s in substituicoes:
+            item = item.replace(s, '')
+        nova_lista.append(item)
+    return nova_lista
+
+
 async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
     try:
         # Forçar a limpeza de qualquer gráfico anterior na memória
@@ -76,16 +87,29 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
 
         # --- Top 10 Lift ---
         rules_plot = regras.sort_values(by='lift', ascending=False).head(10)
-        plt.figure(figsize=(12, 6))
+        plt.figure(figsize=(12, 8))
+
+        # Criando os labels com tratamento de strings
+        labels = [f"{limpar_nome(a)} \n=> {limpar_nome(c)}" for a, c in zip(rules_plot['antecedents'], rules_plot['consequents'])]
+
         plt.barh(range(len(rules_plot)), rules_plot['lift'], color='skyblue')
-        plt.yticks(range(len(rules_plot)), [f"{list(a)} => {list(c)}" for a, c in zip(rules_plot['antecedents'], rules_plot['consequents'])])
+
+        plt.yticks(
+            range(len(rules_plot)),
+            labels,
+            fontsize=9,
+            va='center'
+#            [f"{list(a)} => {list(c)}" for a, c in zip(rules_plot['antecedents'], rules_plot['consequents'])]
+        )
+
         plt.xlabel('Lift')
         plt.title('Top 10 Regras por Lift')
         plt.gca().invert_yaxis()
+        plt.tight_layout()
         plt.subplots_adjust(left=0.3)
         path_lift = "static/regras/img/top10_lift.png"
         plt.savefig(path_lift)
-        plt.close() # Importante: Libera memória
+        plt.close('all') # Importante: Libera memória
 
         # --- Dispersão ---
         plt.figure(figsize=(8, 6))
