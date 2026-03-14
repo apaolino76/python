@@ -8,7 +8,6 @@ class VwAprioriModel(settings.DBBaseModelJEDi):
     __tablename__ = 'vw_apriori'
 
     id = Column(Integer, primary_key=True)
-    origem = Column(String(16))
     escola = Column(String(150))
     turma = Column(String(15))
     login = Column(String(12))

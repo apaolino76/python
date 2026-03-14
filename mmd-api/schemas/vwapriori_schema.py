@@ -6,7 +6,6 @@ from decimal import Decimal
 class VwAprioriSchema(BaseModel):
         
     id: Optional[int] = None
-    origem: str
     escola: str
     turma: str
     login: str

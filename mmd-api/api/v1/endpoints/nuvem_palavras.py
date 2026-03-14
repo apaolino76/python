@@ -5,7 +5,9 @@ from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
-from wordcloud import WordCloud, STOPWORDS
+from wordcloud import WordCloud
+import nltk
+from nltk.corpus import stopwords
 
 from models.usuario_model import UsuarioModel
 from models.perguntas import PerguntasModel
@@ -27,18 +29,23 @@ async def get_palavaras(request: Request, usuario_logado: UsuarioModel = Depends
         # Unificando tudo em um único texto
         texto_completo = " ".join(perguntas)
 
+        # Baixar a lista de stopwords do NLTK
+        nltk.download('stopwords')
+        stop_words_pt = set(stopwords.words('portuguese'))
+
         # Configurando Stopwords em Português
-        stopwords_pt = set(["de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "é", "com", "na", "no", "os", "as"])
+        palavras_extras = {"de", "a", "o", "que", "e", "do", "da", "em", "um", "para", "é", "com", "na", "no", "os", "as", "ao", "se"}
         # Você pode somar as stopwords padrão da biblioteca se desejar
-        stopwords_pt.update(STOPWORDS)
+        stop_words_pt.update(palavras_extras)
 
         # Criando a nuvem de palavras
         nuvem = WordCloud(
             width=800, 
             height=400,
             background_color='white',
-            stopwords=stopwords_pt,
+            stopwords=stop_words_pt,
             colormap='viridis', # Esquema de cores
+            max_words=100,
             min_font_size=10
         ).generate(texto_completo)
 
