@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import List, Dict, Tuple, Any
 from fastapi import HTTPException,status
+from wordcloud import WordCloud
 import pandas as pd
 
 colunas_desejadas = [
@@ -388,6 +389,28 @@ async def gerar_grafico_perfil_noticia(dados: pd.DataFrame):
         path_save = "static/estatisticas/img/perfil_noticia.png"
         fig.savefig(path_save)
         plt.close('all') 
+        
+    except Exception as e:
+        print(f"Erro ao gerar gráfico de perfil: {e}")
+
+async def gerar_nuvem_palavras(nuvem: WordCloud):
+    try:
+        # 1. Limpeza total antes de começar
+        plt.clf()
+        plt.close('all')
+
+        # 4. Exibindo o resultado
+        plt.figure(figsize=(10, 5))
+        plt.imshow(nuvem, interpolation='bilinear')
+        plt.axis("off") # Remove os eixos do gráfico
+        plt.tight_layout(pad=0)
+        plt.show()
+
+        path_save = "static/nuvem_palavaras/img/nuvem_palavras.png"
+        plt.savefig(path_save)
+        # Importante: Libera memória
+        plt.close('all') 
+
         
     except Exception as e:
         print(f"Erro ao gerar gráfico de perfil: {e}")

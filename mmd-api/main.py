@@ -11,6 +11,7 @@ import uvicorn
 # Criar pastas necessárias se não existirem
 os.makedirs("static/regras/img", exist_ok=True)
 os.makedirs("static/estatisticas/img", exist_ok=True)
+os.makedirs("static/nuvem_palavaras/img", exist_ok=True)
 
 # Criação de cache para a aplicação
 # @asynccontextmanager
