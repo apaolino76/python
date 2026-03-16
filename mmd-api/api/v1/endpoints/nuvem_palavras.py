@@ -18,7 +18,7 @@ from models.negocio.tema import TemaModel
 from models.negocio.area import AreaModel
 from models.negocio.categoria import CategoriaModel
 from models.negocio.perguntas_categorias import PerguntasCategoriasModel
-from schemas.nuvem_palavras_schema import NuvemPalavraSchema
+from schemas.nuvem_palavras_schema import NuvemFilterSchema, NuvemPalavraSchema
 from core.deps import get_session_JEDi, get_current_user
 from api.v1.endpoints.utils.utils import gerar_nuvem_palavras 
 
@@ -26,10 +26,16 @@ router = APIRouter(redirect_slashes=False)
 
 # GET Regras
 @router.get('', status_code=status.HTTP_200_OK, response_model=NuvemPalavraSchema)
-async def get_palavras(request: Request, usuario_logado: UsuarioModel = Depends(get_current_user), db: AsyncSession = Depends(get_session_JEDi)):
+async def get_palavras(
+    request: Request,
+    filters: NuvemFilterSchema = Depends(),
+    usuario_logado: UsuarioModel = Depends(get_current_user),
+    db: AsyncSession = Depends(get_session_JEDi)
+):
     try:
         async with db as session:
             query = (select(
+                PerguntasModel.id,
                 PerguntasModel.pergunta,
                 PerguntasModel.respcerta,
                 TemaModel.nome.label('tema'),
@@ -40,8 +46,19 @@ async def get_palavras(request: Request, usuario_logado: UsuarioModel = Depends(
             .join(AreaModel, TemaModel.id_area == AreaModel.id)
             .join(PerguntasCategoriasModel, PerguntasModel.id == PerguntasCategoriasModel.id_pergunta)
             .join(CategoriaModel, PerguntasCategoriasModel.id_categoria == CategoriaModel.id))
+            if filters.area:
+                query = query.where(AreaModel.id == filters.area)
+            if filters.tema:
+                query = query.where(TemaModel.nome == filters.tema)
+            if filters.categoria:
+                query = query.where(CategoriaModel.descricao == filters.categoria)
+            if filters.respcerta:
+                query = query.where(PerguntasModel.respcerta == filters.respcerta)
             result = await session.execute(query)
             registros = result.all()
+        
+        if len(registros) == 0:
+            raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
 
         # Unificando tudo em um único texto
         texto_completo = " ".join([reg.pergunta for reg in registros])
@@ -94,6 +111,7 @@ async def get_palavras(request: Request, usuario_logado: UsuarioModel = Depends(
         }
 
         return {
+            "total_registros": len(registros),
             "dados": registros,
             "texto_completo": texto_completo,
             "link_grafico": link 

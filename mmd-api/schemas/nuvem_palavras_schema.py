@@ -21,7 +21,15 @@ class PerguntaBaseSchema(BaseModel):
     # Necessário para o Pydantic ler objetos do SQLAlchemy
     model_config = ConfigDict(from_attributes=True)
 
+class NuvemFilterSchema(BaseModel):
+        
+    area: Optional[str] = None
+    tema: Optional[str] = None
+    categoria: Optional[str] = None
+    respcerta: Optional[str] = None
+
 class NuvemItemSchema(BaseModel):
+    id: int
     pergunta: str
     respcerta: str
     tema: str
@@ -30,6 +38,7 @@ class NuvemItemSchema(BaseModel):
 
 class NuvemPalavraSchema(BaseModel):
     # Define que a resposta será uma lista de perguntas
+    total_registros: int
     dados: List[NuvemItemSchema]
     texto_completo: str
     link_grafico: Dict[str, str]
