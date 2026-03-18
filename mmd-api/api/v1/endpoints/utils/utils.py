@@ -5,6 +5,7 @@ import seaborn as sns
 from typing import List, Dict, Tuple, Any
 from fastapi import HTTPException,status
 from wordcloud import WordCloud
+from api.v1.endpoints.utils.ChartGenerator import chart_tool
 import pandas as pd
 
 colunas_desejadas = [
@@ -136,8 +137,7 @@ async def gerar_graficos_e_regras(regras: pd.DataFrame) -> Tuple[List[Dict[str, 
         print(f"Erro durante o processo de Gerar Gráfico de Regras: {e}")
 
 
-# async def gerar_grafico_avaliacoes(dados: pd.DataFrame) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
-async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
+'''
     try:
         # Forçar a limpeza de qualquer gráfico anterior na memória
         plt.clf()
@@ -194,6 +194,29 @@ async def gerar_grafico_avaliacoes(dados: pd.DataFrame):
         plt.savefig(path_avaliacao)
         # Importante: Libera memória
         plt.close('all')
+'''
+async def gerar_grafico_avaliacoes(dados: pd.DataFrame, path_imagem: str):
+    try:
+        # Preparação (Melt)
+        df_long = dados.melt(
+            id_vars='avaliacao', 
+            value_vars=['autoavaliacao', 'avaliacao_jogo'], 
+            var_name='fonte',
+            value_name='pct'
+        )
+    
+        # Chamada simplificada
+        await chart_tool.plot_barplot(
+            df=df_long,
+            path_save=path_imagem,
+            params={
+                'x': 'avaliacao',
+                'y': 'pct',
+                'hue': 'fonte',
+                'titulo': 'Autoavaliação vs Jogo',
+                'palette': ['royalblue', 'darkorange']
+            }
+        )
     except Exception as e:
         print(f"Erro durante o processo de Gerar Gráfico de Avaliações: {e}")
 
@@ -304,7 +327,7 @@ async def gerar_grafico_partida_escola(dados: pd.DataFrame):
 
         # Supondo que sua lista de cores seja algo como:
         cores = ["#3498db", "#e74c3c"] 
-
+ 
         # Verifique quantos itens únicos existem na coluna que você está plotando
         # Se estiver plotando por 'escola', por exemplo:
         n_colors = dados['escola'].nunique()

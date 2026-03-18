@@ -82,17 +82,17 @@ async def get_avaliacoes(
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
         df = await transforma_em_dataframe(data)
-
-        # Agendamos a geração da imagem para depois da resposta
-        await gerar_grafico_avaliacoes(df)
+      
+        # Geração da imagem do gráfico
+        await gerar_grafico_avaliacoes(df, "static/estatisticas/img/acertos_avaliacao.jpg")
 
         # Construímos a URL da imagem
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
-            "grafico_avaliacao": f"{base_url}static/estatisticas/img/acertos_avaliacao.png?v={timestamp}"
+            "grafico_avaliacao": f"{base_url}static/estatisticas/img/acertos_avaliacao.jpg?v={timestamp}"
         }
-
+        
         return {
             "total": len(df),
             "link_imagem": link,
