@@ -81,18 +81,15 @@ async def get_avaliacoes(
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
         df = await transforma_em_dataframe(data)
-
-        # Define o caminho onde a imagem será salva
-        path_relativo = "static/estatisticas/img/acertos_avaliacao.jpg"
-     
+      
         # Geração da imagem do gráfico
-        await gerar_grafico_avaliacoes(df, path_relativo)
+        await gerar_grafico_avaliacoes(df, "static/estatisticas/img/acertos_avaliacao.jpg")
 
         # Construímos a URL da imagem
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
-            "grafico_avaliacao": f"{base_url}{path_relativo}?v={timestamp}"
+            "grafico_avaliacao": f"{base_url}static/estatisticas/img/acertos_avaliacao.jpg?v={timestamp}"
         }
         
         return {
@@ -125,21 +122,17 @@ async def get_categoria_turma(
                 query = query.where(VwEstatisticaCategoriaTurmaModel.categoria == filters.categoria)
             result = await session.execute(query)
             data = result.scalars().all()
-
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
         df = await transforma_em_dataframe(data)
 
-        # Define o caminho onde a imagem será salva
-        path_relativo = "static/estatisticas/img/categoria_turma.jpg"
-
-        await gerar_grafico_categoria_turma(df, path_relativo)
+        await gerar_grafico_categoria_turma(df)
         
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
-            "grafico_categoria_turma": f"{base_url}{path_relativo}?v={timestamp}"
+            "grafico_categoria_turma": f"{base_url}static/estatisticas/img/categoria_turma.png?v={timestamp}"
         }
 
         return {
@@ -170,23 +163,19 @@ async def get_partida_escola(
                 query = query.where(VwEstatisticaPartidaTurmaModel.turma == filters.turma)
             result = await session.execute(query)
             data = result.scalars().all()
-
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
         df = await transforma_em_dataframe(data)
 
-        # Caminho do arquivo
-        path_relativo = "static/estatisticas/img/partida_escola.jpg"
-
         # 1. Agendamos a geração da imagem para depois da resposta
-        await gerar_grafico_partida_escola(df, path_relativo)
+        await gerar_grafico_partida_escola(df)
         
         # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
-            "grafico_escola_turma": f"{base_url}{path_relativo}?v={timestamp}"
+            "grafico_escola_turma": f"{base_url}static/estatisticas/img/escola_turma.png?v={timestamp}"
         }
 
         return {
@@ -199,6 +188,7 @@ async def get_partida_escola(
 
 # GET Estatísticas por Partida, Escola e Turma
 @router.get('/perfil_noticia', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaSchema)
+# @cache(expire=300) # Cache de 5 minutos
 async def get_perfil_noticia(
     request: Request,
     filters: DistribuicaoNotociaCategoriaFilterSchema = Depends(),
@@ -214,23 +204,19 @@ async def get_perfil_noticia(
                 query = query.where(VwDistribuicaoNoticiasCategoriaModel.categoria == filters.categoria)
             result = await session.execute(query)
             data = result.scalars().all()
-
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
         df = await transforma_em_dataframe(data)
 
-        # Caminho onde a imagem será salva
-        path_relativo = "static/estatisticas/img/perfil_noticia.jpg"
-
         # 1. Agendamos a geração da imagem para depois da resposta
-        await gerar_grafico_perfil_noticia(df, path_relativo)
+        await gerar_grafico_perfil_noticia(df)
         
         # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
-            "grafico_perfil_noticia": f"{base_url}{path_relativo}?v={timestamp}"
+            "grafico_perfil_noticia": f"{base_url}static/estatisticas/img/perfil_noticia.png?v={timestamp}"
         }
 
         return {

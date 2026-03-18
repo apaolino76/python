@@ -1,8 +1,6 @@
-
 import pandas as pd
 import numpy as np
 import time 
-from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select

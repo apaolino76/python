@@ -1,7 +1,4 @@
-
 import time
-import matplotlib.pyplot as plt
-from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.future import select
@@ -101,13 +98,14 @@ async def get_palavras(
             min_font_size=10
         ).generate(texto_final)
 
-        await gerar_nuvem_palavras(nuvem)
+        path_relativo = "static/estatisticas/img/nuvem_questoes.jpg"
+
+        await gerar_nuvem_palavras(nuvem, path_relativo)
 
         base_url = str(request.base_url)
-        print(base_url)
         timestamp = int(time.time())
         link = {
-            "link": f"{base_url}static/nuvem_palavaras/img/nuvem_palavras.png?v={timestamp}"
+            "link": f"{base_url}{path_relativo}?v={timestamp}"
         }
 
         return {
@@ -119,7 +117,4 @@ async def get_palavras(
     
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
-'''
-
-
-'''        
+        
