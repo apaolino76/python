@@ -1,5 +1,5 @@
-from typing import Optional, List, Dict, Any
-from pydantic import BaseModel
+from typing import Optional, List, Dict, Any, Union
+from pydantic import BaseModel, ConfigDict
 from decimal import Decimal
 
 class EstisticaAvaliacaoSchema(BaseModel):
@@ -63,6 +63,13 @@ class DistribuicaoNotociaCategoriaFilterSchema(BaseModel):
     categoria: Optional[str] = None
 
 class RespostaEstatisticaSchema(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    
     total: int
     link_imagem: Dict[str, str]
-    dados: List[Dict[str, Any]]
+    dados: List[Union[
+        EstisticaAvaliacaoSchema, 
+        EstatisticaCategoriaTurmaSchema, 
+        EstatisticaPartidaTurmaSchema, 
+        DistribuicaoNotociaCategoriaSchema
+    ]]

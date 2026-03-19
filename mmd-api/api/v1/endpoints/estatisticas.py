@@ -1,19 +1,14 @@
 import time
 from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, Request
-# from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from models.usuario_model import UsuarioModel
-from models.vwestatistica_avaliacao_model import VwEstatisticaAvaliacoesModel
-from models.vwestatistica_categoria_turma_model import VwEstatisticaCategoriaTurmaModel
-from models.vwestatististica_partida_turma import VwEstatisticaPartidaTurmaModel
-from models.vwdistribuicao_noticias_categoria import VwDistribuicaoNoticiasCategoriaModel
-
 from schemas.estatisticas_schema import EstisticaAvaliacaoFilterSchema, EstisticaCategoriaFilterSchema, EstatisticaPartidaFilterSchema, RespostaEstatisticaSchema, DistribuicaoNotociaCategoriaFilterSchema
+from services.graficos import GraficosService
+from repositories.estatistica_repository import EstatisticaRepository
+
 from core.deps import get_session_JEDi, get_current_user
-from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_avaliacoes, gerar_grafico_categoria_turma, gerar_grafico_partida_escola, gerar_grafico_perfil_noticia
 
 router = APIRouter()
 
@@ -64,30 +59,19 @@ async def get_avaliacoes(
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
-        async with db as session:
-            query = select(VwEstatisticaAvaliacoesModel)
-            if filters.id:
-                query = query.where(VwEstatisticaAvaliacoesModel.id == filters.id)
-            if filters.escola:
-                query = query.where(VwEstatisticaAvaliacoesModel.escola == filters.escola)
-            if filters.turma:
-                query = query.where(VwEstatisticaAvaliacoesModel.turma == filters.turma)
-            if filters.avaliacao:
-                query = query.where(VwEstatisticaAvaliacoesModel.avaliacao == filters.avaliacao)            
-            result = await session.execute(query)
-            data = result.scalars().all()
+        # Instancia o repositório passando a sessão do banco
+        repo = EstatisticaRepository(db)
+        
+        # Chama a camada de dados de forma isolada
+        data = await repo.get_avaliacoes_filtradas(filters)
 
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
-        
-        df = await transforma_em_dataframe(data)
-
-        # Define o caminho onde a imagem será salva
+    
         path_relativo = "static/estatisticas/img/acertos_avaliacao.jpg"
-     
-        # Geração da imagem do gráfico
-        await gerar_grafico_avaliacoes(df, path_relativo)
-
+      
+        await GraficosService.criar_grafico_avaliacao(data, path_relativo)
+        
         # Construímos a URL da imagem
         base_url = str(request.base_url)
         timestamp = int(time.time())
@@ -96,16 +80,15 @@ async def get_avaliacoes(
         }
         
         return {
-            "total": len(df),
+            "total": len(data),
             "link_imagem": link,
-            "dados": df.to_dict(orient="records")
+            "dados": data
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
     
 # GET Estatísticas por Categoria e Turma
 @router.get('/categoria_turma', status_code=status.HTTP_200_OK, response_model=RespostaEstatisticaSchema)
-# @cache(expire=300) # Cache de 5 minutos
 async def get_categoria_turma(
     request: Request,
     filters: EstisticaCategoriaFilterSchema = Depends(),
@@ -113,29 +96,20 @@ async def get_categoria_turma(
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
-        async with db as session:
-            query = select(VwEstatisticaCategoriaTurmaModel)
-            if filters.id:
-                query = query.where(VwEstatisticaCategoriaTurmaModel.id == filters.id)
-            if filters.escola:
-                query = query.where(VwEstatisticaCategoriaTurmaModel.escola == filters.escola)
-            if filters.turma:
-                query = query.where(VwEstatisticaCategoriaTurmaModel.turma == filters.turma)
-            if filters.categoria:
-                query = query.where(VwEstatisticaCategoriaTurmaModel.categoria == filters.categoria)
-            result = await session.execute(query)
-            data = result.scalars().all()
-
+        # Instancia o repositório passando a sessão do banco
+        repo = EstatisticaRepository(db)
+        
+        # Chama a camada de dados de forma isolada
+        data = await repo.get_categorias_filtradas(filters)     
+                   
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
-        df = await transforma_em_dataframe(data)
-
         # Define o caminho onde a imagem será salva
         path_relativo = "static/estatisticas/img/categoria_turma.jpg"
+     
+        await GraficosService.criar_grafico_categoria(data, path_relativo)
 
-        await gerar_grafico_categoria_turma(df, path_relativo)
-        
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
@@ -143,9 +117,9 @@ async def get_categoria_turma(
         }
 
         return {
-            "total": len(df),
+            "total": len(data),
             "link_imagem": link,
-            "dados": df.to_dict(orient="records")
+            "dados": data
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))    
@@ -160,29 +134,21 @@ async def get_partida_escola(
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
-        async with db as session:
-            query = select(VwEstatisticaPartidaTurmaModel)
-            if filters.id:
-                query = query.where(VwEstatisticaPartidaTurmaModel.id == filters.id)
-            if filters.escola:
-                query = query.where(VwEstatisticaPartidaTurmaModel.escola == filters.escola)
-            if filters.turma:
-                query = query.where(VwEstatisticaPartidaTurmaModel.turma == filters.turma)
-            result = await session.execute(query)
-            data = result.scalars().all()
-
+        # Instancia o repositório passando a sessão do banco
+        repo = EstatisticaRepository(db)
+        
+        # Chama a camada de dados de forma isolada
+        data = await repo.get_partidas_filtradas(filters)
+        
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
-        
-        df = await transforma_em_dataframe(data)
 
         # Caminho do arquivo
         path_relativo = "static/estatisticas/img/partida_escola.jpg"
-
-        # 1. Agendamos a geração da imagem para depois da resposta
-        await gerar_grafico_partida_escola(df, path_relativo)
         
-        # 2. Construímos a URL da imagem
+        await GraficosService.criar_grafico_partida(data, path_relativo)
+
+        # Construímos a URL da imagem
         base_url = str(request.base_url)
         timestamp = int(time.time())
         link = {
@@ -190,9 +156,9 @@ async def get_partida_escola(
         }
 
         return {
-            "total": len(df),
+            "total": len(data),
             "link_imagem": link,
-            "dados": df.to_dict(orient="records")
+            "dados": data
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))
@@ -206,25 +172,19 @@ async def get_perfil_noticia(
     db: AsyncSession = Depends(get_session_JEDi)
 ):
     try:
-        async with db as session:
-            query = select(VwDistribuicaoNoticiasCategoriaModel)
-            if filters.id:
-                query = query.where(VwDistribuicaoNoticiasCategoriaModel.id == filters.id)
-            if filters.categoria:
-                query = query.where(VwDistribuicaoNoticiasCategoriaModel.categoria == filters.categoria)
-            result = await session.execute(query)
-            data = result.scalars().all()
-
+        # Instancia o repositório passando a sessão do banco
+        repo = EstatisticaRepository(db)
+        
+        # Chama a camada de dados de forma isolada
+        data = await repo.get_perfil_noticias_filtradas(filters)      
+        
         if not data:
             raise HTTPException(detail='Não foi possível gerar os dados.', status_code=status.HTTP_404_NOT_FOUND)
         
-        df = await transforma_em_dataframe(data)
-
         # Caminho onde a imagem será salva
         path_relativo = "static/estatisticas/img/perfil_noticia.jpg"
-
-        # 1. Agendamos a geração da imagem para depois da resposta
-        await gerar_grafico_perfil_noticia(df, path_relativo)
+        
+        await GraficosService.criar_grafico_perfil(data, path_relativo)
         
         # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
@@ -234,9 +194,9 @@ async def get_perfil_noticia(
         }
 
         return {
-            "total": len(df),
+            "total": len(data),
             "link_imagem": link,
-            "dados": df.to_dict(orient="records")
+            "dados": data
         }
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail=str(e))

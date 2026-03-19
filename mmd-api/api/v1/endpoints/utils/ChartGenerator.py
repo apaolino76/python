@@ -140,6 +140,7 @@ class ChartGenerator:
         Substitui a lógica repetitiva de todas as funções de barra do utils.py.
         """
         self._limpar_memoria()
+        
         fig, ax = plt.subplots(figsize=(10, 6))
         
         sns.barplot(
@@ -151,8 +152,7 @@ class ChartGenerator:
             palette=params.get('palette', self.cores_padrao),
             ax=ax,
             errorbar=None
-        )
-    
+        )    
         
         self._adicionar_rotulos(ax, formato_rotulo)
         
@@ -164,7 +164,8 @@ class ChartGenerator:
        
         fig.tight_layout()
         fig.savefig(path_save)
+        
         self._limpar_memoria()
-
+        
 # --- Instância global para uso nos serviços ---
 chart_tool = ChartGenerator()

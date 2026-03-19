@@ -1,9 +1,7 @@
 import math
 from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException
-# from fastapi_cache.decorator import cache
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy.future import select
 
 from core.deps import get_session_JEDi, get_current_user
 from core.configs import settings
