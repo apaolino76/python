@@ -1,5 +1,6 @@
+from typing import List, Dict, Tuple, Any
 from wordcloud import WordCloud
-from api.v1.endpoints.utils.utils import transforma_em_dataframe
+from api.v1.endpoints.utils.utils import transforma_em_dataframe, formata_regra_amigavel
 from api.v1.endpoints.utils.ChartGenerator import chart_tool
 
 class GraficosService:
@@ -170,6 +171,53 @@ class GraficosService:
         except Exception as e:
             print(f"Erro no serviço de gráficos: {e}")
             raise e
+    
+    @staticmethod
+    async def gerar_graficos_e_regras(df_regras) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
+        try:
+            # Preparação: Criar a coluna de texto formatada
+            df_regras['regra_formatada'] = df_regras.apply(formata_regra_amigavel, axis=1)
+            
+            # Gerar Gráfico de Dispersão (Todas as Regras)
+            path_scatter = "static/regras/img/regras_dispersao.png"
+            await chart_tool.plot_scatter(
+                df=df_regras,
+                path_save=path_scatter,
+                params={
+                    'x': 'support',
+                    'y': 'confidence',
+                    'hue': 'lift',
+                    'size': 'lift',
+                    'titulo': 'Dispersão das Regras (Suporte vs Confiança)'
+                }
+            )
+            
+            # Gerar Gráfico Top 10 (Baseado no Lift)
+            df_top10 = df_regras.nlargest(10, 'lift')
+            path_top10 = "static/regras/img/regras_top10.png"
+            await chart_tool.plot_horizontal_bars(
+                df=df_top10,
+                path_save=path_top10,
+                params={
+                    'x': 'lift',
+                    'y': 'regra_formatada',
+                    'titulo': 'Top 10 Regras por Lift (Força de Associação)',
+                    'label_x': 'Valor de Lift'
+                }
+            )
+
+            # Preparar JSON
+            rules_list = df_regras[['antecedents', 'consequents', 'support', 'confidence', 'lift']].copy()
+            rules_list['antecedents'] = rules_list['antecedents'].apply(list)
+            rules_list['consequents'] = rules_list['consequents'].apply(list)
+            
+            return rules_list.to_dict(orient='records'),{
+                "grafico_lift": path_top10,
+                "grafico_dispersao": path_scatter
+            }
+        except Exception as e:
+            print(f"Erro no serviço de gráficos: {e}")
+            raise e       
     
     @staticmethod
     async def criar_nuvem_palavaras(nuvem: WordCloud, path: str):

@@ -1,13 +1,18 @@
 import pandas as pd
 import numpy as np
 from mlxtend.frequent_patterns import apriori, association_rules
+from services.graficos import GraficosService
 from api.v1.endpoints.utils.utils import (
-    transforma_em_dataframe, discretizar_coluna, 
-    colunas_desejadas, gerar_graficos_e_regras
+    transforma_em_dataframe,
+    discretizar_coluna, 
+    colunas_desejadas
 )
 
 class RegrasService:
     async def processar_regras_associacao(self, data):
+        # Instancia a camada de serviços resposável pela geração dos gráficos
+        graficos = GraficosService()
+        
         # Transformação inicial
         df = await transforma_em_dataframe(data)
             
@@ -31,5 +36,5 @@ class RegrasService:
             return None, None
         
         # Geração de saídas (JSON e Imagens)
-        regras_json, links_imagens = await gerar_graficos_e_regras(rules)
+        regras_json, links_imagens = await graficos.gerar_graficos_e_regras(rules)
         return regras_json, links_imagens
