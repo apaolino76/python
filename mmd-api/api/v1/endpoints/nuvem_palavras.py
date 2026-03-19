@@ -12,7 +12,6 @@ from schemas.nuvem_palavras_schema import NuvemFilterSchema, NuvemPalavraSchema
 from services.nuvem_palavras import NuvemPalavarasService
 
 from core.deps import get_session_JEDi, get_current_user
-from api.v1.endpoints.utils.utils import gerar_nuvem_palavras
 
 router = APIRouter(redirect_slashes=False)
 

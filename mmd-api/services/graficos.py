@@ -1,30 +1,185 @@
-from api.v1.endpoints.utils.utils import (
-    transforma_em_dataframe,
-    gerar_grafico_avaliacoes, 
-    gerar_grafico_categoria_turma, 
-    gerar_grafico_partida_escola, 
-    gerar_grafico_perfil_noticia
-)
+from wordcloud import WordCloud
+from api.v1.endpoints.utils.utils import transforma_em_dataframe
+from api.v1.endpoints.utils.ChartGenerator import chart_tool
 
 class GraficosService:
     
     @staticmethod
     async def criar_grafico_avaliacao(data, path: str):
-        # Aqui você centraliza qualquer lógica extra antes de gerar a imagem
-        df = await transforma_em_dataframe(data)
-        return await gerar_grafico_avaliacoes(df, path)
+        try:
+            # Transformação de dados (Camada de Serviço)
+            df = await transforma_em_dataframe(data)
+            
+            # Preparação (Melt)
+            df_long = df.melt(
+                id_vars='avaliacao', 
+                value_vars=['autoavaliacao', 'avaliacao_jogo'], 
+                var_name='fonte',
+                value_name='pct'
+            )
+        
+            # Chamada simplificada
+            await chart_tool.plot_barplot(
+                df=df_long,
+                path_save=path,
+                params={
+                    'x': 'avaliacao',
+                    'y': 'pct',
+                    'hue': 'fonte',
+                    'titulo': 'Autoavaliação vs Jogo',
+                    'palette': ['royalblue', 'darkorange'],
+                    'ylim': 100
+                },
+                formato_rotulo="{:.1f}%"
+            )
+        except Exception as e:
+            print(f"Erro no serviço de gráficos: {e}")
+            raise e
 
     @staticmethod
     async def criar_grafico_categoria(data, path: str):
-        df = await transforma_em_dataframe(data)
-        return await gerar_grafico_categoria_turma(df, path)
+        try:
+            # Transformação de dados (Camada de Serviço)
+            df = await transforma_em_dataframe(data)
+
+            # Preparação dos dados: Transformação de Wide para Long (Melt)
+            # Mapeamos as colunas do banco para nomes amigáveis
+            mapping = {'media_acertos': 'Acerto', 'media_erros': 'Erro'}
+
+            # Transformar para formato longo
+            df_melt = df.melt(
+                id_vars=['categoria', 'turma'],
+                value_vars=['media_acertos', 'media_erros'],
+                var_name='Tipo',
+                value_name='media'
+            )
+
+            # Criar a coluna combinada para o eixo X (ex: "Acerto - Turma A")
+            df_melt['Tipo'] = df_melt['Tipo'].replace(mapping)
+            df_melt['Legenda_X'] = df_melt['Tipo'] + ' - ' + df_melt['turma']
+            
+            # Definir a ordem das barras para ficarem agrupadas por turma
+            turmas = sorted(df['turma'].unique())
+            ordem_x = []
+            for t in turmas:
+                ordem_x.extend([f"Acerto - {t}", f"Erro - {t}"])
+            
+            # Chamar a função mestra da classe
+            await chart_tool.plot_barplot(
+                df=df_melt,
+                path_save=path,
+                params={
+                    'x': 'Legenda_X',
+                    'y': 'media',
+                    'hue': 'categoria',
+                    'order': ordem_x,
+                    'titulo': 'Média de Acertos/Erros por Categoria e Turma',
+                    'label_x': 'Turmas / Tipo',
+                    'label_y': 'Média (%)',
+                    'ylim': 100
+                },
+                formato_rotulo="{:.1f}%"
+            )            
+        except Exception as e:
+            print(f"Erro no serviço de gráficos: {e}")
+            raise e
 
     @staticmethod
     async def criar_grafico_partida(data, path: str):
-        df = await transforma_em_dataframe(data)
-        return await gerar_grafico_partida_escola(df, path)
+        try:
+            # Transformação de dados (Camada de Serviço)
+            df = await transforma_em_dataframe(data)
+            
+            # Mapeamento para nomes amigáveis na legenda
+            mapping = {'PI': 'Partida Inicial', 'PF': 'Partida Final'}
+            
+            # Transformação de Wide para Long
+            df_melt = df.melt(
+                id_vars=['escola', 'turma'], 
+                value_vars=['PI', 'PF'], 
+                var_name='momento', 
+                value_name='media'
+            )
+            
+            # Substitui os nomes técnicos pelos nomes do mapping
+            df_melt['momento'] = df_melt['momento'].replace(mapping)
+            
+            # Criar a legenda do eixo X combinando Escola e Turma
+            df_melt['eixo_x'] = df_melt['escola'] + " (" + df_melt['turma'] + ")"
+            
+            # Definir a ordem das barras (Agrupar Pré e Pós por Escola/Turma)
+            eixos_unicos = df_melt['eixo_x'].unique()
+            ordem_x = sorted(eixos_unicos)
+
+            # Chamada da classe ChartGenerator
+            await chart_tool.plot_barplot(
+                df=df_melt,
+                path_save=path,
+                params={
+                    'x': 'eixo_x',
+                    'y': 'media',
+                    'hue': 'momento', # O que diferencia as cores das barras
+                    'order': ordem_x,
+                    'titulo': 'Desempenho Médio: Partida Inicial vs Partida Final',
+                    'label_x': 'Escola (Turma)',
+                    'label_y': 'Média de Acertos (%)',
+                    'ylim': 100,
+                    'palette': ['#34495e', '#2ecc71'] # Cores customizadas (Cinza e Verde)
+                },
+                formato_rotulo="{:.1f}%"
+            )        
+        except Exception as e:
+            print(f"Erro no serviço de gráficos: {e}")
+            raise e
 
     @staticmethod
     async def criar_grafico_perfil(data, path: str):
-        df = await transforma_em_dataframe(data)
-        return await gerar_grafico_perfil_noticia(df, path)
+        try:
+            # Transformação de dados (Camada de Serviço)
+            df = await transforma_em_dataframe(data)
+            
+            # Lógica de negócio específica para a visualização
+            df_melt = df.melt(
+                id_vars=['categoria'], 
+                value_vars=['fake_qt', 'nao_fake_qt'],
+                var_name='tipo_noticia', 
+                value_name='quantidade'
+            )
+            
+            df_melt['tipo_noticia'] = df_melt['tipo_noticia'].replace({
+                'fake_qt': 'Fake', 
+                'nao_fake_qt': 'Não Fake'
+            })
+            
+            # Chamada à ferramenta de plotagem (Apresentação)
+            await chart_tool.plot_barplot(
+                df=df_melt,
+                path_save=path,
+                params={
+                    'x': 'categoria',
+                    'y': 'quantidade',
+                    'hue': 'tipo_noticia',
+                    'titulo': 'Comparativo: Notícias Fake vs. Não Fake por Categoria',
+                    'label_x': 'Categorias',
+                    'label_y': 'Quantidade de Respostas',
+                    'palette': ['#e74c3c', '#2ecc71'],
+                    'ylim': df_melt['quantidade'].max()
+                },
+                formato_rotulo="{:.0f}"
+            )           
+        except Exception as e:
+            print(f"Erro no serviço de gráficos: {e}")
+            raise e
+    
+    @staticmethod
+    async def criar_nuvem_palavaras(nuvem: WordCloud, path: str):
+        try:
+            # Apenas delegamos para a classe mestre
+            await chart_tool.plot_wordcloud(
+                nuvem=nuvem, 
+                path_save=path,
+                titulo="Nuvem de Palavras das Questões"
+            )        
+        except Exception as e:
+            print(f"Erro no serviço de gráficos: {e}")
+            raise e

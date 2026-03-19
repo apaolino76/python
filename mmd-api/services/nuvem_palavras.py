@@ -1,6 +1,6 @@
 import spacy
 from wordcloud import WordCloud
-from api.v1.endpoints.utils.utils import gerar_nuvem_palavras
+from services.graficos import GraficosService
 
 class NuvemPalavarasService:
     def __init__(self):
@@ -25,6 +25,6 @@ class NuvemPalavarasService:
             colormap='viridis', max_words=100
         ).generate(texto_final)
 
-        await gerar_nuvem_palavras(nuvem, path_relativo)
+        await GraficosService.criar_nuvem_palavaras(nuvem, path_relativo)        
         
         return texto_completo
