@@ -8,7 +8,10 @@ from nltk.corpus import stopwords
 '''
 from models.usuario_model import UsuarioModel
 from repositories.nuvem_palavras import NuvemPalavrasRepository
-from schemas.nuvem_palavras_schema import NuvemFilterSchema, NuvemPalavraSchema
+from schemas.nuvem_palavras_schema import (
+    NuvemFilterSchema,
+    NuvemPalavraSchema
+)
 from services.nuvem_palavras import NuvemPalavarasService
 
 from core.deps import get_session_JEDi, get_current_user

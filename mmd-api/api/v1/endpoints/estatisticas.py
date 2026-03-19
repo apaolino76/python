@@ -1,10 +1,15 @@
 import time
-from typing import List
 from fastapi import APIRouter, status, Depends, HTTPException, Request
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models.usuario_model import UsuarioModel
-from schemas.estatisticas_schema import EstisticaAvaliacaoFilterSchema, EstisticaCategoriaFilterSchema, EstatisticaPartidaFilterSchema, RespostaEstatisticaSchema, DistribuicaoNotociaCategoriaFilterSchema
+from schemas.estatisticas_schema import (
+    EstisticaAvaliacaoFilterSchema,
+    EstisticaCategoriaFilterSchema,
+    EstatisticaPartidaFilterSchema,
+    RespostaEstatisticaSchema,
+    DistribuicaoNotociaCategoriaFilterSchema
+)
 from services.graficos import GraficosService
 from repositories.estatistica_repository import EstatisticaRepository
 
