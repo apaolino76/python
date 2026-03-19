@@ -134,13 +134,7 @@ class ChartGenerator:
         # Limpa para a próxima requisição
         self._limpar_memoria()
 
-    async def plot_barplot(
-        self, 
-        df: pd.DataFrame, 
-        params: dict, 
-        path_save: str, 
-        formato_rotulo: str = "{:.1f}%"
-    ):
+    async def plot_barplot(self, df: pd.DataFrame, params: dict, path_save: str, formato_rotulo: str = "{:.1f}%"):
         """
         Função Mestra de Barras. 
         Substitui a lógica repetitiva de todas as funções de barra do utils.py.
