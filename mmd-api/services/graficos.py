@@ -226,7 +226,7 @@ class GraficosService:
             await chart_tool.plot_wordcloud(
                 nuvem=nuvem, 
                 path_save=path,
-                titulo="Nuvem de Palavras das Questões"
+                titulo="Nuvem de Palavras das Notícias"
             )        
         except Exception as e:
             print(f"Erro no serviço de gráficos: {e}")

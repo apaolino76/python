@@ -20,5 +20,4 @@ class PerguntasModel(settings.DBBaseModelJEDi):
     numero_caracteres = Column(Integer)
 
     # Relacionamentos
-    tema = relationship("TemaModel", back_populates="perguntas")
     categorias_vinculadas = relationship("PerguntasCategoriasModel", back_populates="pergunta")

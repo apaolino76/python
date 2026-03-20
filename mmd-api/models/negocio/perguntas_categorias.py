@@ -14,4 +14,3 @@ class PerguntasCategoriasModel(settings.DBBaseModelJEDi):
     # Relacionamentos para facilitar o acesso via código
     pergunta  = relationship("PerguntasModel", back_populates="categorias_vinculadas")
     categoria = relationship("CategoriaModel", back_populates="perguntas_vinculadas")
-    tema      = relationship("TemaModel")

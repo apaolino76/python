@@ -23,8 +23,6 @@ class PerguntaBaseSchema(BaseModel):
 
 class NuvemFilterSchema(BaseModel):
         
-    area: Optional[str] = None
-    tema: Optional[str] = None
     categoria: Optional[str] = None
     respcerta: Optional[str] = None
 
@@ -32,8 +30,6 @@ class NuvemItemSchema(BaseModel):
     id: int
     pergunta: str
     respcerta: str
-    tema: str
-    area: str
     categoria: str
 
 class NuvemPalavraSchema(BaseModel):
