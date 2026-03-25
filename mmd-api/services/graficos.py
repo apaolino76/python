@@ -1,16 +1,20 @@
 from typing import List, Dict, Tuple, Any
 from wordcloud import WordCloud
-from api.v1.endpoints.utils.utils import transforma_em_dataframe, formata_regra_amigavel
+from services.data_processing import DataProcessingService
 from api.v1.endpoints.utils.ChartGenerator import chart_tool
+
+service = DataProcessingService()
 
 class GraficosService:
     
     @staticmethod
-    async def criar_grafico_avaliacao(data, path: str):
+    async def criar_grafico_avaliacao(data, path: str, filters: Any = None):
         try:
             # Transformação de dados (Camada de Serviço)
-            df = await transforma_em_dataframe(data)
-            
+            df = await service.transforma_em_dataframe(data)
+
+            titulo = await service.montar_titulo_com_filtros("Autoavaliação vs Jogo", filters)
+          
             # Preparação (Melt)
             df_long = df.melt(
                 id_vars='avaliacao', 
@@ -27,7 +31,7 @@ class GraficosService:
                     'x': 'avaliacao',
                     'y': 'pct',
                     'hue': 'fonte',
-                    'titulo': 'Autoavaliação vs Jogo',
+                    'titulo': titulo,
                     'palette': ['royalblue', 'darkorange'],
                     'ylim': 100
                 },
@@ -38,10 +42,12 @@ class GraficosService:
             raise e
 
     @staticmethod
-    async def criar_grafico_categoria(data, path: str):
+    async def criar_grafico_categoria(data, path: str, filters: Any = None):
         try:
             # Transformação de dados (Camada de Serviço)
-            df = await transforma_em_dataframe(data)
+            df = await service.transforma_em_dataframe(data)
+
+            titulo = await service.montar_titulo_com_filtros("Média de Acertos/Erros por Categoria e Turma", filters)
 
             # Preparação dos dados: Transformação de Wide para Long (Melt)
             # Mapeamos as colunas do banco para nomes amigáveis
@@ -74,7 +80,7 @@ class GraficosService:
                     'y': 'media',
                     'hue': 'categoria',
                     'order': ordem_x,
-                    'titulo': 'Média de Acertos/Erros por Categoria e Turma',
+                    'titulo': titulo,
                     'label_x': 'Turmas / Tipo',
                     'label_y': 'Média (%)',
                     'ylim': 100
@@ -86,10 +92,12 @@ class GraficosService:
             raise e
 
     @staticmethod
-    async def criar_grafico_partida(data, path: str):
+    async def criar_grafico_partida(data, path: str, filters: Any = None):
         try:
             # Transformação de dados (Camada de Serviço)
-            df = await transforma_em_dataframe(data)
+            df = await service.transforma_em_dataframe(data)
+
+            titulo = await service.montar_titulo_com_filtros("Desempenho Médio: Partida Inicial vs Partida Final", filters)
             
             # Mapeamento para nomes amigáveis na legenda
             mapping = {'PI': 'Partida Inicial', 'PF': 'Partida Final'}
@@ -121,7 +129,7 @@ class GraficosService:
                     'y': 'media',
                     'hue': 'momento', # O que diferencia as cores das barras
                     'order': ordem_x,
-                    'titulo': 'Desempenho Médio: Partida Inicial vs Partida Final',
+                    'titulo': titulo,
                     'label_x': 'Escola (Turma)',
                     'label_y': 'Média de Acertos (%)',
                     'ylim': 100,
@@ -134,10 +142,12 @@ class GraficosService:
             raise e
 
     @staticmethod
-    async def criar_grafico_perfil(data, path: str):
+    async def criar_grafico_perfil(data, path: str, filters: Any = None):
         try:
             # Transformação de dados (Camada de Serviço)
-            df = await transforma_em_dataframe(data)
+            df = await service.transforma_em_dataframe(data)
+
+            titulo = await service.montar_titulo_com_filtros("Comparativo: Notícias Fake vs. Não Fake por Categoria", filters)
             
             # Lógica de negócio específica para a visualização
             df_melt = df.melt(
@@ -160,7 +170,7 @@ class GraficosService:
                     'x': 'categoria',
                     'y': 'quantidade',
                     'hue': 'tipo_noticia',
-                    'titulo': 'Comparativo: Notícias Fake vs. Não Fake por Categoria',
+                    'titulo': titulo,
                     'label_x': 'Categorias',
                     'label_y': 'Quantidade de Respostas',
                     'palette': ['#e74c3c', '#2ecc71'],
@@ -176,7 +186,7 @@ class GraficosService:
     async def gerar_graficos_e_regras(df_regras) -> Tuple[List[Dict[str, Any]], Dict[str, str]]:
         try:
             # Preparação: Criar a coluna de texto formatada
-            df_regras['regra_formatada'] = df_regras.apply(formata_regra_amigavel, axis=1)
+            df_regras['regra_formatada'] = df_regras.apply(service.formata_regra_amigavel, axis=1)
             
             # Gerar Gráfico de Dispersão (Todas as Regras)
             path_scatter = "static/regras/img/regras_dispersao.png"
@@ -222,11 +232,12 @@ class GraficosService:
     @staticmethod
     async def criar_nuvem_palavaras(nuvem: WordCloud, path: str):
         try:
+            
             # Apenas delegamos para a classe mestre
             await chart_tool.plot_wordcloud(
                 nuvem=nuvem, 
                 path_save=path,
-                titulo="Nuvem de Palavras das Notícias"
+                titulo= 'Nuvem de Palavras das Notícias'
             )        
         except Exception as e:
             print(f"Erro no serviço de gráficos: {e}")

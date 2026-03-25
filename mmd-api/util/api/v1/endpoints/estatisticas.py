@@ -13,7 +13,7 @@ from models.vwdistribuicao_noticias_categoria import VwDistribuicaoNoticiasCateg
 
 from schemas.estatisticas_schema import EstisticaAvaliacaoFilterSchema, EstisticaCategoriaFilterSchema, EstatisticaPartidaFilterSchema, RespostaEstatisticaSchema, DistribuicaoNotociaCategoriaFilterSchema
 from core.deps import get_session_JEDi, get_current_user
-from api.v1.endpoints.utils.utils import transforma_em_dataframe, gerar_grafico_avaliacoes, gerar_grafico_categoria_turma, gerar_grafico_partida_escola, gerar_grafico_perfil_noticia
+from services.data_processing import transforma_em_dataframe, gerar_grafico_avaliacoes, gerar_grafico_categoria_turma, gerar_grafico_partida_escola, gerar_grafico_perfil_noticia
 
 router = APIRouter()
 

@@ -7,7 +7,7 @@ import nltk
 from nltk.corpus import stopwords
 '''
 from models.usuario_model import UsuarioModel
-from repositories.nuvem_palavras import NuvemPalavrasRepository
+from repositories.nuvem_palavras_repository import NuvemPalavrasRepository
 from schemas.nuvem_palavras_schema import (
     NuvemFilterSchema,
     NuvemPalavraSchema

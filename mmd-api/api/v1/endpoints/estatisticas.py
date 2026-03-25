@@ -75,7 +75,7 @@ async def get_avaliacoes(
     
         path_relativo = "static/estatisticas/img/acertos_avaliacao.jpg"
       
-        await GraficosService.criar_grafico_avaliacao(data, path_relativo)
+        await GraficosService.criar_grafico_avaliacao(data, path_relativo, filters)
         
         # Construímos a URL da imagem
         base_url = str(request.base_url)
@@ -113,7 +113,7 @@ async def get_categoria_turma(
         # Define o caminho onde a imagem será salva
         path_relativo = "static/estatisticas/img/categoria_turma.jpg"
      
-        await GraficosService.criar_grafico_categoria(data, path_relativo)
+        await GraficosService.criar_grafico_categoria(data, path_relativo, filters)
 
         base_url = str(request.base_url)
         timestamp = int(time.time())
@@ -151,7 +151,7 @@ async def get_partida_escola(
         # Caminho do arquivo
         path_relativo = "static/estatisticas/img/partida_escola.jpg"
         
-        await GraficosService.criar_grafico_partida(data, path_relativo)
+        await GraficosService.criar_grafico_partida(data, path_relativo, filters)
 
         # Construímos a URL da imagem
         base_url = str(request.base_url)
@@ -189,7 +189,7 @@ async def get_perfil_noticia(
         # Caminho onde a imagem será salva
         path_relativo = "static/estatisticas/img/perfil_noticia.jpg"
         
-        await GraficosService.criar_grafico_perfil(data, path_relativo)
+        await GraficosService.criar_grafico_perfil(data, path_relativo, filters)
         
         # 2. Construímos a URL da imagem
         base_url = str(request.base_url)
