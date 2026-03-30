@@ -2,7 +2,7 @@ from sqlalchemy.ext.asyncio import create_async_engine, AsyncEngine, AsyncSessio
 from core.configs import settings
 
 engine: AsyncEngine = create_async_engine(
-    settings.DB_URL,
+    settings.DB_URL_API,
     echo=False,
     future=True
 )
@@ -16,7 +16,7 @@ SessionLocal: AsyncSession = async_sessionmaker(
 )
 
 engineJEDi: AsyncEngine = create_async_engine(
-    settings.DB_URL_JEDi,
+    settings.DB_URL_JEDI,
     echo=False, # lança o SQL gerado no console do servidor
     future=True
 )

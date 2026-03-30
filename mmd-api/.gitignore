@@ -1,0 +1,19 @@
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+
+# Configurações Sensíveis (CRÍTICO)
+.env
+
+# Python (Arquivos compilados)
+__pycache__/
+*.py[cod]
+*$py.class
+
+# IDEs
+.vscode/
+.idea/
+
+# Logs e outros
+*.log
